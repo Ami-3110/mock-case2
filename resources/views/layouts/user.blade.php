@@ -17,7 +17,7 @@
 
         {{-- 左：ロゴ --}}
         <div class="header-left">
-            <a href="{{ url('/') }}" class="logo-image">
+            <a href="{{ route('attendance.index') }}" class="logo-image">
                 <img src="{{ asset('images/logo.svg') }}" alt="ロゴ" class="logo-png">
             </a>
         </div>
