@@ -9,8 +9,8 @@ class Attendance extends Model
     protected $fillable = [
         'user_id',
         'work_date',
-        'clock_in'=> 'datetime',
-        'clock_out'=> 'datetime',
+        'clock_in',
+        'clock_out',
     ];
 
     protected $casts = [
@@ -23,9 +23,9 @@ class Attendance extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function breaks()
+    public function breakTimes()
     {
-        return $this->hasMany(BreakTime::class);
+        return $this->hasMany(BreakTime::class, 'attendance_id');
     }
 
     public function application()

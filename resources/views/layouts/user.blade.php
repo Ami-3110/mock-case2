@@ -26,8 +26,8 @@
         <div ckass="header-right">
             <dic class="link-set">
                 <a href="{{ route('attendance.index') }}" class="attendance-status_Link">勤怠</a>
-                <a href="{{ route('attendance.index') }}" class="attendance-all__link">勤怠一覧</a>
-                <a href="{{ route('attendance.fix') }}" class="atpplocation-form__link">申請</a>
+                <a href="{{ route('attendance.list') }}" class="attendance-all__link">勤怠一覧</a>
+                <a href="{{ route('stamp_correction_request.list') }}" class="atpplocation-form__link">申請</a>
                 @auth
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

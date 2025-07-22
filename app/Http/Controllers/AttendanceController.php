@@ -11,12 +11,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Session;
 
-
 class AttendanceController extends Controller
 {
     use AuthorizesRequests;
-    /* 勤怠画面の表示 */
-    public function status()
+    /* 勤怠登録画面の表示 */
+    public function index()
     {
         $user = Auth::user();
 
@@ -28,7 +27,7 @@ class AttendanceController extends Controller
         if (!$attendance) {
             $status = '勤務外';
         } elseif ($attendance->clock_out) {
-            $status = '退勤済み';
+            $status = '退勤済';
         } elseif ($attendance->clock_in) {
             // 休憩中判定は BreakTime テーブル見て判定すればよい
             $break = BreakTime::where('attendance_id', $attendance->id)
@@ -41,7 +40,7 @@ class AttendanceController extends Controller
             $status = '勤務外';
         }
 
-        return view('attendance.status', [
+        return view('attendance.index', [
             'status' => $status,
             'date' => now()->format('Y年n月j日（D）'),
             'time' => now()->format('H:i:s'),
@@ -61,7 +60,7 @@ class AttendanceController extends Controller
 
         Session::put('attendance_id', $attendance->id);
 
-        return redirect()->route('attendance.status');
+        return redirect()->route('attendance.index');
     }
 
     /* 休憩開始 */
@@ -69,7 +68,7 @@ class AttendanceController extends Controller
     {
         $attendanceId = Session::get('attendance_id');
         if (!$attendanceId) {
-            return redirect()->route('attendance.status')->with('error', '出勤していません');
+            return redirect()->route('attendance.index')->with('error', '出勤していません');
         }
 
         $break = new BreakTime();
@@ -79,7 +78,7 @@ class AttendanceController extends Controller
 
         Session::put('break_time_id', $break->id);
 
-        return redirect()->route('attendance.status');
+        return redirect()->route('attendance.index');
     }
 
     /* 休憩終了 */
@@ -87,12 +86,12 @@ class AttendanceController extends Controller
     {
         $breakTimeId = Session::get('break_time_id');
         if (!$breakTimeId) {
-            return redirect()->route('attendance.status')->with('error', '休憩が開始されていません');
+            return redirect()->route('attendance.index')->with('error', '休憩が開始されていません');
         }
 
         $break = BreakTime::find($breakTimeId);
         if (!$break) {
-            return redirect()->route('attendance.status')->with('error', '休憩データが見つかりません');
+            return redirect()->route('attendance.index')->with('error', '休憩データが見つかりません');
         }
 
         $break->break_end = now();
@@ -100,7 +99,7 @@ class AttendanceController extends Controller
 
         Session::forget('break_time_id'); 
 
-        return redirect()->route('attendance.status');
+        return redirect()->route('attendance.index');
     }
 
     /* 退勤打刻 */
@@ -123,18 +122,36 @@ class AttendanceController extends Controller
         $attendance->clock_out = now();
         $attendance->save();
 
-        return redirect()->route('attendance.status');
+        return redirect()->route('attendance.index');
     }
 
-
     /* 当月勤怠一覧表示 */
-    public function index()
+    public function list(Request $request)
     {
-        return view('attendance.status');
+        $user = Auth::user();
+
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month', now()->month);
+
+        $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
+        $endDate = (clone $startDate)->endOfMonth()->endOfDay();
+
+        $attendances = Attendance::with('breakTimes')
+            ->where('user_id', $user->id)
+            ->whereBetween('work_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->orderBy('work_date', 'asc')
+            ->get();
+
+        $prevMonth = (clone $startDate)->subMonth();
+        $nextMonth = (clone $startDate)->addMonth();
+
+        return view('attendance.list', compact(
+            'attendances', 'year', 'month', 'prevMonth', 'nextMonth'
+        ));
     }
 
     /* 勤怠修正申請フォームの表示 */
-    public function showApplicationForm($attendanceId)
+    public function show($id)
     {
         // 該当勤怠を取得 & viewに渡す
     }
@@ -144,5 +161,4 @@ class AttendanceController extends Controller
     {
         // attendance_applications テーブルに申請登録
     }
-
 }
