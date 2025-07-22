@@ -17,8 +17,7 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 Route::get('/login', [AuthenticatedSessionController::class, 'showLoginForm']);
 // ログイン処理
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
-// ログアウト処理
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
 // メール認証を踏んだらログイン状態、かつステータス（打刻）ページ飛ばす
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
@@ -61,4 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveForm'])->name('admin.correction.approve');
     });
     
+    // ログアウト処理
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
 });

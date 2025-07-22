@@ -23,8 +23,8 @@
         </div>
 
             {{-- 右：リンクセット --}}
-        <div ckass="header-right">
-            <dic class="link-set">
+        <div class="header-right">
+            <div class="link-set">
                 <a href="{{ route('attendance.index') }}" class="attendance-status_Link">勤怠</a>
                 <a href="{{ route('attendance.list') }}" class="attendance-all__link">勤怠一覧</a>
                 <a href="{{ route('stamp_correction_request.list') }}" class="atpplocation-form__link">申請</a>
@@ -42,6 +42,5 @@
     <main class="main-container">
         @yield('content')
     </main>
-    @yield('js')
 </body>
 </html>
