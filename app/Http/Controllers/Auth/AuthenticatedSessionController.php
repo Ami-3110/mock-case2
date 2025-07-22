@@ -20,7 +20,7 @@ class AuthenticatedSessionController extends Controller
         $credentials = $request->only(Fortify::username(), 'password');
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            return redirect()->intended(config('fortify.home'));
         }
         return redirect('/login')->withErrors([
             'login_error' => 'ログイン情報が登録されていません。',

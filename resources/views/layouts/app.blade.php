@@ -1,5 +1,3 @@
-<!-- resources/views/layouts/app2.blade.php -->
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
