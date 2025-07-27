@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\BreakTime;
-use App\Models\AttendanceApplication;
+use App\Models\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -29,7 +29,6 @@ class AttendanceController extends Controller
         } elseif ($attendance->clock_out) {
             $status = '退勤済';
         } elseif ($attendance->clock_in) {
-            // 休憩中判定は BreakTime テーブル見て判定すればよい
             $break = BreakTime::where('attendance_id', $attendance->id)
                 ->whereNull('break_end')
                 ->latest()
@@ -68,7 +67,7 @@ class AttendanceController extends Controller
     {
         $attendanceId = Session::get('attendance_id');
         if (!$attendanceId) {
-            return redirect()->route('attendance.index')->with('error', '出勤していません');
+            return redirect()->route('attendance.index');
         }
 
         $break = new BreakTime();
@@ -86,12 +85,12 @@ class AttendanceController extends Controller
     {
         $breakTimeId = Session::get('break_time_id');
         if (!$breakTimeId) {
-            return redirect()->route('attendance.index')->with('error', '休憩が開始されていません');
+            return redirect()->route('attendance.index');
         }
 
         $break = BreakTime::find($breakTimeId);
         if (!$break) {
-            return redirect()->route('attendance.index')->with('error', '休憩データが見つかりません');
+            return redirect()->route('attendance.index');
         }
 
         $break->break_end = now();
@@ -113,10 +112,10 @@ class AttendanceController extends Controller
             ->first();
 
         if (!$attendance) {
-            return redirect()->back()->with('error', '出勤記録が見つかりません。');
+            return redirect()->back();
         }
         if ($attendance->clock_out) {
-            return redirect()->back()->with('error', 'すでに退勤しています。');
+            return redirect()->back();
         }
 
         $attendance->clock_out = now();
@@ -136,7 +135,7 @@ class AttendanceController extends Controller
         $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
         $endDate = (clone $startDate)->endOfMonth()->endOfDay();
 
-        $attendances = Attendance::with('breakTimes')
+        $attendances = Attendance::with(['breakTimes', 'user'])
             ->where('user_id', $user->id)
             ->whereBetween('work_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->orderBy('work_date', 'asc')
@@ -153,12 +152,69 @@ class AttendanceController extends Controller
     /* 勤怠修正申請フォームの表示 */
     public function show($id)
     {
-        // 該当勤怠を取得 & viewに渡す
-    }
+        $user = Auth::user();
+    
+        $attendance = Attendance::with('breakTimes', 'user', 'application')
+            ->where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $application = $attendance->application;
+    
+        $isEditable = !$application || $application->status !== '承認待ち';
+    
+        return view('attendance.show', [
+            'attendance' => $attendance,
+            'breaks' => $attendance->breakTimes,
+            'isEditable' => $isEditable,
+        ]);
+    } 
 
     /* 勤怠修正申請の送信 */
-    public function submitApplication(Request $request)
+    public function requestFix(Request $request, $id)
     {
-        // attendance_applications テーブルに申請登録
+        $attendance = Attendance::with('breakTimes', 'user', 'application')->findOrFail($id);
+    
+        $application = $attendance->application ?? new Application();
+        $application->user_id = Auth::id();
+        $application->attendance_id = $attendance->id;
+        $application->reason = $request->input('reason');
+        $application->status = '承認待ち';
+        $application->fixed_clock_in = $request->input('fixed_clock_in');
+        $application->fixed_clock_out = $request->input('fixed_clock_out');
+        $application->fixed_break_start = $request->input('fixed_break_start');
+        $application->fixed_break_end = $request->input('fixed_break_end');
+        $application->fixed_breaks = json_encode($request->input('breaks', []));
+        $application->save();
+    
+        $isEditable = false;
+    
+        return view('attendance.show', [
+            'attendance' => $attendance,
+            'breaks' => $attendance->breakTimes,
+            'isEditable' => $isEditable,
+        ]);
     }
+    
+    /* 勤怠修正申請一覧 */
+    public function correctionList()
+    {
+        $pendingApplications = Application::with('user', 'attendance')
+            ->where('status', '承認待ち')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $approvedApplications = Application::with('user', 'attendance')
+            ->where('status', '承認済み')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('stamp_correction_request.list', [
+            'pendingApplications' => $pendingApplications,
+            'approvedApplications' => $approvedApplications,
+        ]);
+    }
+
+
+
 }

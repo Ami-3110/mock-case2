@@ -3,11 +3,34 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use App\Models\Attendance;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
+
 
 class AttendanceController extends Controller
 {
+    // 本日の勤怠一覧 //
+    public function list($date = null)
+    {
+        $targetDate = $date ? Carbon::parse($date) : Carbon::today();
+        $prevDate = $targetDate->copy()->subDay();
+        $nextDate = $targetDate->copy()->addDay();
 
+        $attendances = Attendance::with(['user', 'breakTimes'])
+            ->whereDate('work_date', $targetDate->toDateString())
+            ->get();
+
+
+        return view('admin.attendance.list', [
+            'attendances' => $attendances,
+            'date' => $targetDate,
+            'prevDate' => $prevDate,
+            'nextDate' => $nextDate,
+        ]);
+    }
 
     // スタッフ一覧表示　//
     public function staffList()
@@ -30,7 +53,20 @@ class AttendanceController extends Controller
     // 承認申請一覧 //
     public function applicationIndex()
     {
-        // is_approved = false な申請一覧
+        $pendingApplications = Application::with('user', 'attendance')
+            ->where('status', '承認待ち')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $approvedApplications = Application::with('user', 'attendance')
+            ->where('status', '承認済み')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('stamp_correction_request.list', [
+            'pendingApplications' => $pendingApplications,
+            'approvedApplications' => $approvedApplications,
+        ]);
     }
 
     // 管理者による承認処理 //

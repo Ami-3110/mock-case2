@@ -22,9 +22,7 @@ class AuthenticatedSessionController extends Controller
             $request->session()->regenerate();
             return redirect()->intended(config('fortify.home'));
         }
-        return redirect('/login')->withErrors([
-            'login_error' => 'ログイン情報が登録されていません。',
-        ]);
+        return redirect('/login');
     }
 
     // ログアウト処理

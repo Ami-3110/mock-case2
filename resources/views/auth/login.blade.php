@@ -7,11 +7,6 @@
 @section('content')
 <div class="auth-form">
     <h2 class="title">ログイン</h2>
-
-    @if ($errors->has('login_error'))
-        <p class="error-message">{{ $errors->first('login_error') }}</p>
-    @endif
-
     <form method="POST" action="{{ route('login') }}">
         @csrf
 

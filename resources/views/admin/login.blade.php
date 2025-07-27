@@ -6,13 +6,8 @@
 
 @section('content')
 <div class="auth-form">
-    <h2 class="title">ログイン</h2>
-
-    @if ($errors->has('login_error'))
-        <p class="error-message">{{ $errors->first('login_error') }}</p>
-    @endif
-
-    <form method="POST" action="{{ route('login') }}">
+    <h2 class="title">管理者ログイン</h2>
+    <form method="POST" action="{{ route('admin.login') }}">
         @csrf
 
         <label class="label" for="email">メールアドレス</label>
@@ -27,10 +22,7 @@
         <div class="error">{{ $message }}</div>
         @enderror
 
-        <button class="button" type="submit">ログインする</button>
+        <button class="button" type="submit">管理者ログインする</button>
     </form>
-    <p class="auth-link">
-        <a href="{{ route('register') }}">会員登録はこちら</a>
-    </p>
 </div>
 @endsection

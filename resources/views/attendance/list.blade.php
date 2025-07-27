@@ -1,5 +1,9 @@
 @extends('layouts.user')
 
+@php
+    $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+@endphp
+
 @section('content')
 <div class="container">
     <h2>勤怠一覧</h2>
@@ -26,42 +30,17 @@
             </tr>
         </thead>
         <tbody>
-            @php
-                function secondsToTime($seconds) {
-                    $h = floor($seconds / 3600);
-                    $m = floor(($seconds % 3600) / 60);
-                    return sprintf('%02d:%02d', $h, $m);
-                }
-            @endphp
-            @foreach ($attendances as $attendance)
-            @php
-                $totalBreakSeconds = $attendance->breakTimes->sum(function($break) {
-                    if ($break->break_start && $break->break_end) {
-                        return $break->break_end->diffInSeconds($break->break_start, true);
-                    }
-                    return 0;
-                });
-            
-                $workSeconds = 0;
-                if ($attendance->clock_in && $attendance->clock_out) {
-                    $workSeconds = $attendance->clock_out
-                        ->diffInSeconds($attendance->clock_in, true)
-                        - $totalBreakSeconds;
-                }
-            @endphp
-        
-                    
+            @foreach ($attendances as $attendance)                
                 <tr>
-                    @php
-                        $weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-                        $date = \Carbon\Carbon::parse($attendance->work_date);
-                    @endphp
-                    <td>{{ $date->format('m/d') }}({{ $weekdays[$date->dayOfWeek] }})</td>
-                    <td>{{ $attendance->clock_in ? $attendance->clock_in->format('H:i') : '-' }}</td>
-                    <td>{{ $attendance->clock_out ? $attendance->clock_out->format('H:i') : '-' }}</td>
-                    <td>{{ secondsToTime($totalBreakSeconds) }}</td>
-                    <td>{{ $workSeconds > 0 ? secondsToTime($workSeconds) : '-' }}</td>
-                    <td><a href="{{-- route('/attendance.show', $attendance->id) --}}" class="attendance-detail">詳細</a></td>
+                    <td>
+                        {{ \Carbon\Carbon::parse($attendance->work_date)->format('m/d') }}
+                        ({{ $weekdays[\Carbon\Carbon::parse($attendance->work_date)->dayOfWeek] }})
+                    </td>                    
+                    <td>{{ optional($attendance->clock_in)->format('H:i') ?? '-' }}</td>
+                    <td>{{ optional($attendance->clock_out)->format('H:i') ?? '-' }}</td>
+                    <td>{{ $attendance->total_break_duration_formatted }}</td>
+                    <td>{{ $attendance->work_duration_formatted }}</td>
+                    <td><a href="{{ route('attendance.show', $attendance->id) }}" class="attendance-detail">詳細</a></td>
                 </tr>
             @endforeach
 
