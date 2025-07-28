@@ -24,7 +24,7 @@
                 <tr>
                     <td>{{ $application->status }}</td>
                     <td>{{ $application->user->name }}</td>
-                    <td>{{ $application->attendance->work_date ? \Carbon\Carbon::parse($application->attendance->work_date)->format('Y/m/d') : '不明' }}
+                    <td>{{ $application->attendance->work_date ? $application->attendance->work_date->format('Y/m/d') : '不明' }}
                     </td>
                     <td>{{ $application->reason }}</td>
                     <td>{{ $application->created_at->format('Y/m/d') }}</td>

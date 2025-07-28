@@ -27,7 +27,7 @@
             <div class="link-set">
                 <a href="{{ route('admin.attendance.list') }}" class="attendance-status_Link">勤怠一覧</a>
                 <a href="{{ route('admin.staff.list') }}" class="attendance-all__link">スタッフ一覧</a>
-                <a href="{{ route('stamp_correction_request.list') }}" class="atpplocation-form__link">申請一覧</a>
+                <a href="{{ route('stamp_correction_request.list') }}" class="atpplication-form__link">申請一覧</a>
                 @auth
                     <form method="POST" action="{{ route('admin.logout') }}">
                         @csrf

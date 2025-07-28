@@ -10,13 +10,12 @@
     <title>{{ config('app.name', 'coachtech勤怠管理アプリ') }}</title>
 
 </head>
-<body class="body">
+<body class="auth-layout__body">
 
     <header class="header">
         <div class="function-bar">
-
             {{-- 左：ロゴ --}}
-            <a href="{{ url('/') }}" class="logo-image">
+            <a href="{{ route('login') }}" class="logo-image">
                 <img src="{{ asset('images/logo.svg') }}" alt="ロゴ" class="logo-png">
             </a>
         </div>

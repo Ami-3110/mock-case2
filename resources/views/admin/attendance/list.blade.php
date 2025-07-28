@@ -24,10 +24,10 @@
             @forelse ($attendances as $attendance)
                 <tr>
                     <td>{{ $attendance->user->name }}</td>
-                    <td>{{ optional($attendance->clock_in)->format('H:i') ?? '-' }}</td>
-                    <td>{{ optional($attendance->clock_out)->format('H:i') ?? '-' }}</td>
-                    <td>{{ $attendance->total_break_duration_formatted }}</td>
-                    <td>{{ $attendance->work_duration_formatted }}</td>
+                    <td>{{ $attendance->clock_in ? $attendance->clock_in->format('H:i') : '未打刻' }}</td>
+                    <td>{{ $attendance->clock_out ? $attendance->clock_out->format('H:i') : '未打刻' }}</td>
+                    <td>{{ $attendance->break_time }}</td>
+                    <td>{{ $attendance->work_time }}</td>
                     <td><a href="{{ route('admin.attendance.show', $attendance->id) }}" class="attendance-detail">詳細</a></td>
                 </tr>
 

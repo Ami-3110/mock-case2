@@ -8,36 +8,16 @@ use App\Models\BreakTime;
 use App\Models\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Session;
 
 class AttendanceController extends Controller
 {
-    use AuthorizesRequests;
     /* 勤怠登録画面の表示 */
     public function index()
     {
         $user = Auth::user();
-
-        $attendance = Attendance::where('user_id', $user->id)
-            ->whereDate('work_date', now()->toDateString())
-            ->latest()
-            ->first();
-
-        if (!$attendance) {
-            $status = '勤務外';
-        } elseif ($attendance->clock_out) {
-            $status = '退勤済';
-        } elseif ($attendance->clock_in) {
-            $break = BreakTime::where('attendance_id', $attendance->id)
-                ->whereNull('break_end')
-                ->latest()
-                ->first();
-
-            $status = $break ? '休憩中' : '勤務中';
-        } else {
-            $status = '勤務外';
-        }
+        $attendance = Attendance::todayByUser($user->id)->first();
+        $status = $attendance?->status ?? '勤務外';
 
         return view('attendance.index', [
             'status' => $status,
@@ -49,78 +29,60 @@ class AttendanceController extends Controller
     /* 出勤打刻 */
     public function clockIn(Request $request)
     {
-        $user = Auth::user();
-
-        $attendance = new Attendance();
-        $attendance->user_id = $user->id;
-        $attendance->work_date = now()->toDateString();
-        $attendance->clock_in = now();
-        $attendance->save();
+        $attendance = Attendance::create([
+            'user_id' => Auth::id(),
+            'work_date' => now()->toDateString(),
+            'clock_in' => now(),
+        ]);
 
         Session::put('attendance_id', $attendance->id);
 
         return redirect()->route('attendance.index');
     }
 
+
     /* 休憩開始 */
-    public function breakStart(Request $request)
+    public function breakStart()
     {
-        $attendanceId = Session::get('attendance_id');
-        if (!$attendanceId) {
+        if (!$attendanceId = Session::get('attendance_id')) {
             return redirect()->route('attendance.index');
         }
 
-        $break = new BreakTime();
-        $break->attendance_id = $attendanceId;
-        $break->break_start = now();
-        $break->save();
+        $break = BreakTime::create([
+            'attendance_id' => $attendanceId,
+            'break_start' => now(),
+        ]);
 
-        Session::put('break_time_id', $break->id);
-
+        Session::put('break_time_id', $break->id);     
         return redirect()->route('attendance.index');
     }
 
     /* 休憩終了 */
-    public function breakEnd(Request $request)
+    public function breakEnd()
     {
-        $breakTimeId = Session::get('break_time_id');
-        if (!$breakTimeId) {
+        if (!$breakTimeId = Session::get('break_time_id')) {
             return redirect()->route('attendance.index');
         }
-
+    
         $break = BreakTime::find($breakTimeId);
         if (!$break) {
             return redirect()->route('attendance.index');
         }
-
-        $break->break_end = now();
-        $break->save();
-
-        Session::forget('break_time_id'); 
-
+    
+        $break->update(['break_end' => now()]);
+        Session::forget('break_time_id');
         return redirect()->route('attendance.index');
     }
 
     /* 退勤打刻 */
     public function clockOut()
     {
-        $user = Auth::user();
-
-        $attendance = Attendance::where('user_id', $user->id)
-            ->whereDate('work_date', now()->toDateString())
-            ->latest()  // フレックス制導入・シフト勤務等での使用可能性を考慮してつけてありますが、現状の仕様では不要かもしれません。勤怠管理方法によります。
-            ->first();
-
-        if (!$attendance) {
-            return redirect()->back();
-        }
-        if ($attendance->clock_out) {
+        $attendance = Attendance::todayByUser(Auth::id())->first();
+        if (!$attendance || $attendance->clock_out) {
             return redirect()->back();
         }
 
-        $attendance->clock_out = now();
-        $attendance->save();
-
+        $attendance->update(['clock_out' => now()]);
         return redirect()->route('attendance.index');
     }
 
@@ -128,40 +90,36 @@ class AttendanceController extends Controller
     public function list(Request $request)
     {
         $user = Auth::user();
-
         $year = $request->input('year', now()->year);
         $month = $request->input('month', now()->month);
 
-        $startDate = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
-        $endDate = (clone $startDate)->endOfMonth()->endOfDay();
+        $start = Carbon::create($year, $month)->startOfMonth();
+        $end = $start->copy()->endOfMonth();
 
         $attendances = Attendance::with(['breakTimes', 'user'])
             ->where('user_id', $user->id)
-            ->whereBetween('work_date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->orderBy('work_date', 'asc')
+            ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
+            ->orderBy('work_date')
             ->get();
 
-        $prevMonth = (clone $startDate)->subMonth();
-        $nextMonth = (clone $startDate)->addMonth();
-
-        return view('attendance.list', compact(
-            'attendances', 'year', 'month', 'prevMonth', 'nextMonth'
-        ));
+        return view('attendance.list', [
+            'attendances' => $attendances,
+            'year' => $year,
+            'month' => $month,
+            'prevMonth' => $start->copy()->subMonth(),
+            'nextMonth' => $start->copy()->addMonth(),
+        ]);
     }
 
     /* 勤怠修正申請フォームの表示 */
     public function show($id)
     {
-        $user = Auth::user();
-    
         $attendance = Attendance::with('breakTimes', 'user', 'application')
             ->where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        $application = $attendance->application;
-    
-        $isEditable = !$application || $application->status !== '承認待ち';
+        $isEditable = optional($attendance->application)->status !== '承認待ち';
     
         return view('attendance.show', [
             'attendance' => $attendance,
@@ -173,18 +131,24 @@ class AttendanceController extends Controller
     /* 勤怠修正申請の送信 */
     public function requestFix(Request $request, $id)
     {
-        $attendance = Attendance::with('breakTimes', 'user', 'application')->findOrFail($id);
-    
+        $attendance = Attendance::with('breakTimes', 'user', 'application')
+            ->where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
         $application = $attendance->application ?? new Application();
-        $application->user_id = Auth::id();
-        $application->attendance_id = $attendance->id;
-        $application->reason = $request->input('reason');
-        $application->status = '承認待ち';
-        $application->fixed_clock_in = $request->input('fixed_clock_in');
-        $application->fixed_clock_out = $request->input('fixed_clock_out');
-        $application->fixed_break_start = $request->input('fixed_break_start');
-        $application->fixed_break_end = $request->input('fixed_break_end');
-        $application->fixed_breaks = json_encode($request->input('breaks', []));
+    
+        $application->fill([
+            'user_id' => Auth::id(),
+            'attendance_id' => $attendance->id,
+            'reason' => $request->input('reason'),
+            'status' => '承認待ち',
+            'fixed_clock_in' => $request->input('fixed_clock_in'),
+            'fixed_clock_out' => $request->input('fixed_clock_out'),
+            'fixed_break_start' => $request->input('fixed_break_start'),
+            'fixed_break_end' => $request->input('fixed_break_end'),
+            'fixed_breaks' => json_encode($request->input('breaks', [])),
+        ]);
         $application->save();
     
         $isEditable = false;
@@ -209,12 +173,6 @@ class AttendanceController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('stamp_correction_request.list', [
-            'pendingApplications' => $pendingApplications,
-            'approvedApplications' => $approvedApplications,
-        ]);
+        return view('stamp_correction_request.list', compact('pendingApplications', 'approvedApplications'));
     }
-
-
-
 }

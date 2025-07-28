@@ -69,7 +69,9 @@
         </table>
     
         @if ($isEditable)
-            <button type="submit">修正</button>
+            <div class="button-rapper">
+                <button type="submit">修正</button>
+            </div>
         @else
             <div class="attention">
                 ※承認待ちのため修正はできません。
