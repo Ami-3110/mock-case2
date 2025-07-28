@@ -111,30 +111,42 @@ class AttendanceController extends Controller
         ]);
     }
 
-    /* 勤怠修正申請フォームの表示 */
+    /* 勤怠修正申請フォームの表示（管理者・一般ユーザー共通） */
     public function show($id)
     {
-        $attendance = Attendance::with('breakTimes', 'user', 'application')
-            ->where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        $query = Attendance::with('breakTimes', 'user', 'application')
+            ->where('id', $id);
+
+        if (!auth()->check() || !auth()->user()->is_admin) {
+            $query->where('user_id', auth()->id());
+        }
+
+        $attendance = $query->firstOrFail();
 
         $isEditable = optional($attendance->application)->status !== '承認待ち';
-    
+
+        $layout = (auth()->check() && auth()->user()->is_admin) ? 'layouts.admin' : 'layouts.user';
+
         return view('attendance.show', [
+            'layout' => $layout,
             'attendance' => $attendance,
             'breaks' => $attendance->breakTimes,
             'isEditable' => $isEditable,
         ]);
-    } 
+    }    
 
-    /* 勤怠修正申請の送信 */
+    /* 勤怠修正申請の送信（管理者・一般ユーザー共通） */
     public function requestFix(Request $request, $id)
     {
-        $attendance = Attendance::with('breakTimes', 'user', 'application')
-            ->where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        $query = Attendance::with('breakTimes', 'user', 'application')
+        ->where('id', $id);
+
+        // 管理者ならユーザーID絞らず、自分でない場合は自分の勤怠だけに限定
+        if (!Auth::user()->is_admin) {
+            $query->where('user_id', Auth::id());
+        }
+
+        $attendance = $query->firstOrFail();
 
         $application = $attendance->application ?? new Application();
     
@@ -152,8 +164,10 @@ class AttendanceController extends Controller
         $application->save();
     
         $isEditable = false;
-    
+        $layout = (auth()->check() && auth()->user()->is_admin) ? 'layouts.admin' : 'layouts.user';
+
         return view('attendance.show', [
+            'layout' => $layout,
             'attendance' => $attendance,
             'breaks' => $attendance->breakTimes,
             'isEditable' => $isEditable,

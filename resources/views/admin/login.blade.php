@@ -11,13 +11,13 @@
         @csrf
 
         <label class="label" for="email">メールアドレス</label>
-        <input class="form" type="email" name="email" id="email" value="{{ old('email') }}">>
+        <input class="form" type="email" name="email" id="email" value="{{ old('email') }}">
         @error('email')
         <div class="error">{{ $message }}</div>
         @enderror
 
         <label class="label" for="password">パスワード</label>
-        <input class="form" type="password" name="password" id="password" value="{{ old('password') }}">>
+        <input class="form" type="password" name="password" id="password" value="{{ old('password') }}">
         @error('password')
         <div class="error">{{ $message }}</div>
         @enderror

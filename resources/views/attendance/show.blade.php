@@ -1,4 +1,4 @@
-@extends('layouts.user')
+@extends($layout)
 
 @section('content')
 <div class="container">

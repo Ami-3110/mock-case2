@@ -51,15 +51,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // 管理者専用ルート
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/login', [AdminAuthenticatedSessionController::class, 'create'])
-        ->name('login');
+    Route::get('/login', [AdminAuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AdminAuthenticatedSessionController::class, 'store']);
 
     Route::middleware(['auth', 'verified', IsAdmin::class])->group(function () {
         // 管理者：日別勤怠一覧（全体）
         Route::get('/attendance/list/{date?}', [AdminAttendanceController::class, 'list'])->name('attendance.list');
-        // 管理者：勤怠詳細
-        Route::get('/attendance/{id}', [AdminAttendanceController::class, 'show'])->name('attendance.show');
         // 管理者：スタッフ一覧
         Route::get('/staff/list', [AdminAttendanceController::class, 'staffList'])->name('staff.list');
         // 管理者：スタッフ別勤怠一覧
@@ -67,9 +64,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // 管理者：勤怠修正申請一覧
         Route::get('/stamp_correction_request/list', [AttendanceController::class, 'correctionList'])->name('stamp_correction_request.list');
         // 管理者：修正申請承認画面
-        Route::get('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveForm'])->name('admin.correction.approve');
+        Route::get('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveForm'])->name('correction.approve');
         // ログアウト処理
-        Route::post('/logout', [\App\Http\Controllers\Admin\Auth\AuthenticatedSessionController::class, 'destroy'])
+        Route::post('/logout', [AdminAuthenticatedSessionController::class, 'destroy'])
             ->name('logout');
     });
 });
