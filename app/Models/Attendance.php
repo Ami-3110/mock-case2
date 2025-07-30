@@ -34,9 +34,9 @@ class Attendance extends Model
         return $this->hasMany(BreakTime::class, 'attendance_id');
     }
 
-    public function application()
+    public function attendanceCorrectRequest()
     {
-        return $this->hasOne(Application::class);
+        return $this->hasOne(AttendanceCorrectRequest::class);
     }
 
     // === 3. アクセサ ===

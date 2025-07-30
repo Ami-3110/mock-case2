@@ -7,7 +7,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\User;
+use App\Models\AttendanceCorrectRequest;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
 
 
 class AttendanceController extends Controller
@@ -53,13 +56,13 @@ class AttendanceController extends Controller
     // 承認申請一覧 //
     public function applicationIndex()
     {
-        $pendingApplications = Application::with('user', 'attendance')
-            ->where('status', '承認待ち')
+        $pendingApplications = AttendanceCorrectRequest::with('user', 'attendance')
+            ->where('status', 'pending')   // ステータス名が 'pending' なら変更してね
             ->orderByDesc('created_at')
             ->get();
 
-        $approvedApplications = Application::with('user', 'attendance')
-            ->where('status', '承認済み')
+        $approvedApplications = AttendanceCorrectRequest::with('user', 'attendance')
+            ->where('status', 'approved')   // '承認済み' なら変更
             ->orderByDesc('created_at')
             ->get();
 
@@ -69,9 +72,56 @@ class AttendanceController extends Controller
         ]);
     }
 
-    // 管理者による承認処理 //
-    public function approveApplication($id)
+    // 修正申請の承認画面表示 //
+    public function approveForm(AttendanceCorrectRequest $attendanceCorrectRequest)
     {
-        // is_approved = true, approved_by, approved_at を更新
+        $user = $attendanceCorrectRequest->user;
+        return view('stamp_correction_request.approve', [
+            'attendanceCorrectRequest' => $attendanceCorrectRequest,
+            'user' => $attendanceCorrectRequest->user,
+        ]);
     }
+
+    // 修正申請の承認処理 //
+    public function approveApplication(AttendanceCorrectRequest $attendanceCorrectRequest)
+    {
+        $attendance = $attendanceCorrectRequest->attendance;
+
+        DB::transaction(function () use ($attendanceCorrectRequest, $attendance) {
+            // 勤怠情報を修正申請内容で更新
+            $attendance->update([
+                'clock_in' => $attendanceCorrectRequest->fixed_clock_in,
+                'clock_out' => $attendanceCorrectRequest->fixed_clock_out,
+            ]);
+
+            // 休憩時間がある場合、更新または作成
+            if ($attendanceCorrectRequest->fixed_break_start && $attendanceCorrectRequest->fixed_break_end) {
+                // 既存のbreakTimesが複数なら要ループで対応
+                // ここでは仮に最初のbreakTimeを更新と想定
+                $break = $attendance->breakTimes()->first();
+                if ($break) {
+                    $break->update([
+                        'break_start' => $attendanceCorrectRequest->fixed_break_start,
+                        'break_end' => $attendanceCorrectRequest->fixed_break_end,
+                    ]);
+                }
+            }
+
+            // 修正申請を承認済みに更新
+            $attendanceCorrectRequest->update([
+                'status' => 'approved',
+            ]);
+        });
+
+        // トランザクション後に更新済みデータを再取得（リフレッシュ）
+        $attendanceCorrectRequest->refresh();
+
+        return view('stamp_correction_request.approve', [
+            'attendanceCorrectRequest' => $attendanceCorrectRequest,
+            'user' => $attendanceCorrectRequest->user,
+        ]);
+    }
+
+    
+
 }

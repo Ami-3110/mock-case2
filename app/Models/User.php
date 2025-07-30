@@ -53,8 +53,9 @@ class User extends Authenticatable
         return $this->hasMany(Attendance::class);
     }
 
-    public function attendance_applications()
+    public function attendanceCorrectRequests()
     {
-        return $this->hasMany(AttendanceApplication::class);
+        return $this->hasMany(AttendanceCorrectRequest::class);
     }
+
 }

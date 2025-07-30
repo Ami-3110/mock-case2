@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\BreakTime;
-use App\Models\Application;
+use App\Models\AttendanceCorrectRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Session;
@@ -114,7 +114,7 @@ class AttendanceController extends Controller
     /* 勤怠修正申請フォームの表示（管理者・一般ユーザー共通） */
     public function show($id)
     {
-        $query = Attendance::with('breakTimes', 'user', 'application')
+        $query = Attendance::with('breakTimes', 'user', 'attendanceCorrectRequest')
             ->where('id', $id);
 
         if (!auth()->check() || !auth()->user()->is_admin) {
@@ -138,7 +138,7 @@ class AttendanceController extends Controller
     /* 勤怠修正申請の送信（管理者・一般ユーザー共通） */
     public function requestFix(Request $request, $id)
     {
-        $query = Attendance::with('breakTimes', 'user', 'application')
+        $query = Attendance::with('breakTimes', 'user', 'attendanceCorrectRequest')
         ->where('id', $id);
 
         // 管理者ならユーザーID絞らず、自分でない場合は自分の勤怠だけに限定
@@ -148,7 +148,7 @@ class AttendanceController extends Controller
 
         $attendance = $query->firstOrFail();
 
-        $application = $attendance->application ?? new Application();
+        $application = $attendance->attendanceCorrectRequest ?? new AttendanceCorrectRequest();
     
         $application->fill([
             'user_id' => Auth::id(),
@@ -177,15 +177,16 @@ class AttendanceController extends Controller
     /* 勤怠修正申請一覧 */
     public function correctionList()
     {
-        $pendingApplications = Application::with('user', 'attendance')
-            ->where('status', '承認待ち')
+        $pendingApplications = AttendanceCorrectRequest::with('user', 'attendance')
+            ->where('status', 'pending')
             ->orderByDesc('created_at')
             ->get();
 
-        $approvedApplications = Application::with('user', 'attendance')
-            ->where('status', '承認済み')
+        $approvedApplications = AttendanceCorrectRequest::with('user', 'attendance')
+            ->where('status', 'approved')
             ->orderByDesc('created_at')
             ->get();
+
 
         return view('stamp_correction_request.list', compact('pendingApplications', 'approvedApplications'));
     }

@@ -60,9 +60,9 @@
                 <th class="cell-label">備考</th>
                 <td class="cell-input">
                     @if ($isEditable)
-                    <input type="text" name="reason" value="{{ old('reason', optional($attendance->application)->reason) }}">
+                    <input type="text" name="reason" value="{{ old('reason', optional($attendance->attendanceCorrectRequest)->reason) }}">
                     @else
-                        {{ $attendance->application->reason ?? '—' }}
+                        {{ $attendance->attendanceCorrectRequest->reason ?? '—' }}
                     @endif
                 </td>
             </tr>

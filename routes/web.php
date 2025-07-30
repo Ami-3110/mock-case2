@@ -65,6 +65,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/stamp_correction_request/list', [AttendanceController::class, 'correctionList'])->name('stamp_correction_request.list');
         // 管理者：修正申請承認画面
         Route::get('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveForm'])->name('correction.approve');
+        // 管理者：修正申請承認処理
+        Route::post('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveApplication'])->name('correction.approve.submit');
+
         // ログアウト処理
         Route::post('/logout', [AdminAuthenticatedSessionController::class, 'destroy'])
             ->name('logout');

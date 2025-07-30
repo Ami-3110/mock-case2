@@ -22,13 +22,20 @@
         <tbody>
             @foreach ($pendingApplications as $application)
                 <tr>
-                    <td>{{ $application->status }}</td>
+                    <td>{{ $application->status_label }}                    </td>
                     <td>{{ $application->user->name }}</td>
                     <td>{{ $application->attendance->work_date ? $application->attendance->work_date->format('Y/m/d') : '不明' }}
                     </td>
                     <td>{{ $application->reason }}</td>
                     <td>{{ $application->created_at->format('Y/m/d') }}</td>
-                    <td><a href="{{ route('attendance.show', $application->attendance_id) }}" class="attendance-detail">詳細</a></td>
+                    <td>
+                        @if (Auth::user()->is_admin)
+                            <a href="{{ route('admin.correction.approve', $application->id) }}" class="attendance-detail">承認</a>
+                        @else
+                            <a href="{{ route('attendance.show', $application->attendance_id) }}" class="attendance-detail">詳細</a>
+                        @endif
+                    </td>
+                      
                 </tr>
             @endforeach
         </tbody>
@@ -76,4 +83,26 @@
         });
     });
 </script>
+<style>
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    
+    .tab {
+        display: inline-block;
+        padding: 8px 16px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background: #eee;
+    }
+    .tab.active {
+        background: #fff;
+        font-weight: bold;
+        border-bottom: none;
+    }
+    </style>
+    
 @endsection
