@@ -9,7 +9,6 @@
     <h2 class="title">ログイン</h2>
     <form method="POST" action="{{ route('login') }}">
         @csrf
-
         <label class="label" for="email">メールアドレス</label>
         <input class="form" type="email" name="email" id="email">
         @error('email')

@@ -20,7 +20,7 @@ class RegisteredUserController extends Controller
     // 会員登録処理
     public function store(RegisterRequest $request){
         $user = User::create([
-            'name' => $request->user_name,
+            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Http\Requests\LoginRequest;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -14,30 +15,21 @@ class AuthenticatedSessionController extends Controller
         return view('admin.login');
     }
 
-    public function store(Request $request)
+    public function store(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
-
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
-            $request->session()->regenerate();
-
-            if (!Auth::user()->is_admin) {
-                Auth::logout();
-                throw ValidationException::withMessages([
-                    'email' => '管理者アカウントではありません。',
-                ]);
-            }
-
-            return redirect()->intended('/admin/attendance/list'); // 管理者専用トップページへ
+        $request->authenticate();
+    
+        if (!Auth::user()->is_admin) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => '管理者アカウントではありません。',
+            ]);
         }
-
-        throw ValidationException::withMessages([
-            'email' => __('auth.failed'),
-        ]);
+    
+        $request->session()->regenerate();
+        return redirect()->intended('/admin/attendance/list');
     }
+    
 
     public function destroy(Request $request)
     {

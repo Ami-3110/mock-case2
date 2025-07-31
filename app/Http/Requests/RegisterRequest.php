@@ -22,17 +22,17 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_name'=> ['required'],
+            'name'=> ['required'],
             'email'=> ['required', 'email'],
             'password' => ['required','min:8','confirmed'],
         ];
     }
     
-    public function messages(){
+    public function messages(): array
+    {
         return [
-            'user_name.required' => 'お名前を入力してください',
+            'name.required' => 'お名前を入力してください',
             'email.required' => 'メールアドレスを入力してください',
-            'email.email' => 'メールアドレスは「ユーザー名@ドメイン」形式で入力してください',
             'password.required' => 'パスワードを入力してください',
             'password.min' => 'パスワードは8文字以上で入力してください',
             'password.confirmed' => 'パスワードと一致しません'

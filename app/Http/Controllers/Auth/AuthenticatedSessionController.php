@@ -17,13 +17,12 @@ class AuthenticatedSessionController extends Controller
 
     // ログイン処理
     public function store(LoginRequest $request){
-        $credentials = $request->only(Fortify::username(), 'password');
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended(config('fortify.home'));
-        }
-        return redirect('/login');
+        $request->authenticate(); // ここでログイン済み
+        $request->session()->regenerate();
+    
+        return redirect()->intended(config('fortify.home'));
     }
+    
 
     // ログアウト処理
     public function destroy(Request $request)
