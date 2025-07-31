@@ -67,6 +67,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveForm'])->name('correction.approve');
         // 管理者：修正申請承認処理
         Route::post('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveApplication'])->name('correction.approve.submit');
+        // CSV出力
+        Route::get('/attendance/staff/{id}/csv', [AdminAttendanceController::class, 'exportStaffAttendanceCsv'])->name('attendance.staff.csv');
 
         // ログアウト処理
         Route::post('/logout', [AdminAuthenticatedSessionController::class, 'destroy'])

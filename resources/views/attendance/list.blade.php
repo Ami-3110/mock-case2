@@ -17,7 +17,6 @@
             {{ $nextMonth->format('Y年n月') }} &gt;
         </a>
     </div>
-
     <table class="table">
         <thead>
             <tr>

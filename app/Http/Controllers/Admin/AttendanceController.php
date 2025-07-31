@@ -10,8 +10,7 @@ use App\Models\User;
 use App\Models\AttendanceCorrectRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-
-
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttendanceController extends Controller
 {
@@ -26,7 +25,6 @@ class AttendanceController extends Controller
             ->whereDate('work_date', $targetDate->toDateString())
             ->get();
 
-
         return view('admin.attendance.list', [
             'attendances' => $attendances,
             'date' => $targetDate,
@@ -38,31 +36,102 @@ class AttendanceController extends Controller
     // スタッフ一覧表示　//
     public function staffList()
     {
-        $staff = User::where('is_admin', false)->get();
+        $staffs = User::where('is_admin', false)->get();
 
-        return view('admin.staff.index', compact('staff'));
+        return view('admin.staff.list', compact('staffs'));
     }
 
     // 各スタッフの月次勤怠一覧表示 //
-    public function staffAttendances(User $user)
+    public function staffAttendance(Request $request, $id)
     {
+        $user = User::findOrFail($id);
+
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month', now()->month);
+
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
         $attendances = $user->attendances()
-            ->orderBy('work_date', 'desc')
+        ->whereBetween('work_date', [$start, $end])
+        ->orderBy('work_date', 'asc')
+        ->get();
+
+        return view('admin.attendance.staff',[
+            'user'=> $user,
+            'attendances' =>$attendances,
+            'year' => $year,
+            'month' => $month,
+            'prevMonth' => $start->copy()->subMonth(),
+            'nextMonth' => $start->copy()->addMonth(),
+        ]);
+    }
+
+    // CSV出力処理
+    public function exportStaffAttendanceCsv(Request $request, $id)
+    {
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month', now()->month);
+
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        $user = User::findOrFail($id);
+
+        $attendances = $user->attendances()
+            ->whereBetween('work_date', [$start, $end])
+            ->orderBy('work_date', 'asc')
             ->get();
 
-        return view('admin.staff.attendances', compact('user', 'attendances'));
+        $fileName = 'attendance_'.$user->name.$year.sprintf('%02d', $month).'.csv';
+
+        $response = new StreamedResponse(function () use ($attendances) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, ['勤務日', '出勤時刻', '退勤時刻', '休憩時間合計', '勤務時間合計']);
+
+            foreach ($attendances as $attendance) {
+                $totalBreakMinutes = $attendance->breakTimes->reduce(function ($carry, $break) {
+                    return $carry + $break->break_end->diffInMinutes($break->break_start);
+                }, 0);
+
+                if ($attendance->clock_in && $attendance->clock_out) {
+                    $workMinutes = $attendance->clock_out->diffInMinutes($attendance->clock_in);
+                } else {
+                    $workMinutes = 0;
+                }
+
+                $actualWorkMinutes = max($workMinutes - $totalBreakMinutes, 0);
+
+                fputcsv($handle, [
+                    $attendance->work_date->format('Y-m-d'),
+                    $attendance->clock_in ? $attendance->clock_in->format('H:i') : '',
+                    $attendance->clock_out ? $attendance->clock_out->format('H:i') : '',
+                    $attendance->break_time,
+                    $attendance->work_time, 
+                ]);                
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', "attachment; filename=\"{$fileName}\"");
+
+        return $response;
     }
 
     // 承認申請一覧 //
     public function applicationIndex()
     {
         $pendingApplications = AttendanceCorrectRequest::with('user', 'attendance')
-            ->where('status', 'pending')   // ステータス名が 'pending' なら変更してね
+            ->where('status', 'pending')
             ->orderByDesc('created_at')
             ->get();
 
         $approvedApplications = AttendanceCorrectRequest::with('user', 'attendance')
-            ->where('status', 'approved')   // '承認済み' なら変更
+            ->where('status', 'approved')
             ->orderByDesc('created_at')
             ->get();
 
@@ -88,40 +157,33 @@ class AttendanceController extends Controller
         $attendance = $attendanceCorrectRequest->attendance;
 
         DB::transaction(function () use ($attendanceCorrectRequest, $attendance) {
-            // 勤怠情報を修正申請内容で更新
             $attendance->update([
                 'clock_in' => $attendanceCorrectRequest->fixed_clock_in,
                 'clock_out' => $attendanceCorrectRequest->fixed_clock_out,
             ]);
 
-            // 休憩時間がある場合、更新または作成
-            if ($attendanceCorrectRequest->fixed_break_start && $attendanceCorrectRequest->fixed_break_end) {
-                // 既存のbreakTimesが複数なら要ループで対応
-                // ここでは仮に最初のbreakTimeを更新と想定
-                $break = $attendance->breakTimes()->first();
-                if ($break) {
-                    $break->update([
-                        'break_start' => $attendanceCorrectRequest->fixed_break_start,
-                        'break_end' => $attendanceCorrectRequest->fixed_break_end,
-                    ]);
-                }
+            $attendance->breakTimes()->delete();
+
+            foreach ($attendanceCorrectRequest->fixed_breaks as $break) {
+                $breakStart = Carbon::parse($attendance->work_date . ' ' . $break['break_start']);
+                $breakEnd = Carbon::parse($attendance->work_date . ' ' . $break['break_end']);
+            
+                $attendance->breakTimes()->create([
+                    'break_start' => $breakStart,
+                    'break_end' => $breakEnd,
+                ]);
             }
 
-            // 修正申請を承認済みに更新
             $attendanceCorrectRequest->update([
                 'status' => 'approved',
             ]);
         });
 
-        // トランザクション後に更新済みデータを再取得（リフレッシュ）
         $attendanceCorrectRequest->refresh();
 
         return view('stamp_correction_request.approve', [
             'attendanceCorrectRequest' => $attendanceCorrectRequest,
             'user' => $attendanceCorrectRequest->user,
         ]);
-    }
-
-    
-
+    }  
 }

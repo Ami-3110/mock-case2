@@ -30,7 +30,7 @@
                     <td>{{ $application->created_at->format('Y/m/d') }}</td>
                     <td>
                         @if (Auth::user()->is_admin)
-                            <a href="{{ route('admin.correction.approve', $application->id) }}" class="attendance-detail">承認</a>
+                            <a href="{{ route('admin.correction.approve', $application->id) }}" class="attendance-detail">詳細</a>
                         @else
                             <a href="{{ route('attendance.show', $application->attendance_id) }}" class="attendance-detail">詳細</a>
                         @endif

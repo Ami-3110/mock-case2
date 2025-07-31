@@ -93,7 +93,7 @@ class AttendanceController extends Controller
         $year = $request->input('year', now()->year);
         $month = $request->input('month', now()->month);
 
-        $start = Carbon::create($year, $month)->startOfMonth();
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
         $end = $start->copy()->endOfMonth();
 
         $attendances = Attendance::with(['breakTimes', 'user'])
