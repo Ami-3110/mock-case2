@@ -1,0 +1,114 @@
+/* 背景・全体 */
+body {
+    background-color: #F0EFF2;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* タイトル */
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    padding-left: 10px;
+    border-left: 5px solid #000000;
+    color: #000000;
+    margin-bottom: 30px;
+}
+
+/* 月移動ナビゲーション */
+.month-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 10px;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+}
+
+.month-navigation {
+    text-decoration: none;
+    color: #737373;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.month-navigation a,
+.month-navigation a:visited {
+    text-decoration: none;
+    color: #737373;
+    font-weight: bold;
+}
+
+.calendar {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.month-center {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.calendar-trigger {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+}
+
+#month-select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    border: 0;
+    padding: 0;
+}
+
+/* 勤怠一覧テーブル */
+.attendance-table {
+    width: 100%;
+    background-color: #FFFFFF;
+    color:#737373;
+    border-radius: 8px;
+}
+
+.attendance-table th{
+    border-bottom: solid 3px #F0EFF2;
+    padding: 8px;
+}
+
+.attendance-table td {
+    padding: 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+    border-bottom: solid 2px #F0EFF2;
+}
+
+.time {
+    font-variant-numeric: tabular-nums;
+}
+
+.attendance-detail {
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.attendance-detail:hover {
+    text-decoration: underline;
+}

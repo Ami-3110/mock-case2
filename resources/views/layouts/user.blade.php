@@ -28,10 +28,10 @@
                 <a href="{{ route('attendance.index') }}" class="attendance-status_Link">勤怠</a>
                 <a href="{{ route('attendance.list') }}" class="attendance-all__link">勤怠一覧</a>
                 <a href="{{ route('stamp_correction_request.list') }}" class="atpplocation-form__link">申請</a>
-                @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="logout-btn">ログアウト</button>
+                @auth                  
+                    <a href="#" class="logout-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">ログアウト</a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf                        
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="login-btn">ログイン</a>
@@ -44,3 +44,4 @@
     </main>
 </body>
 </html>
+

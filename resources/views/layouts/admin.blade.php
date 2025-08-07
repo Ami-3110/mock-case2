@@ -29,9 +29,9 @@
                 <a href="{{ route('admin.staff.list') }}" class="attendance-all__link">スタッフ一覧</a>
                 <a href="{{ route('stamp_correction_request.list') }}" class="atpplication-form__link">申請一覧</a>
                 @auth
-                    <form method="POST" action="{{ route('admin.logout') }}">
+                    <a href="#" class="logout-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">ログアウト</a>
+                    <form id="logout-form" method="POST" action="{{ route('admin.logout') }}">
                         @csrf
-                        <button type="submit" class="logout-btn">ログアウト</button>
                     </form>
                 @else
                     <a href="{{ route('admin.login') }}" class="login-btn">ログイン</a>

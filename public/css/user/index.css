@@ -1,0 +1,96 @@
+/* 背景・全体設定 */
+body {
+    background-color: #F0EFF2;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 80px auto;
+    padding: 32px;
+    text-align: center;
+    width: 100%;
+}
+
+/* ステータスバッジ */
+.status-box p:first-child {
+    display: inline-block;
+    background-color: #C8C8C8;
+    color: #696969;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+}
+
+/* 日付表示 */
+.current-date {
+    font-size: 22px;
+    margin-bottom: 8px;
+    display: block;
+    color: #000000;
+}
+
+/* 時刻表示 */
+.current-time {
+    font-size: 48px;
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 32px;
+    display: block;
+}
+
+.time {
+    font-variant-numeric: tabular-nums;
+}
+
+/* 退勤メッセージ */
+.goodbye-message {
+    margin-top: 70px;
+    font-weight: bold;
+    color: #000000;
+    font-size: 20px;
+}
+
+/* ボタン共通 */
+form button {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 40px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 8px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.button-group form {
+    margin: 0;
+}
+
+.action-work {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+.action-work:hover {
+    background-color: #333333;
+}
+
+.action-break {
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+.action-break:hover,
+.action-break:hover {
+    background-color: #EAEAEA;
+}

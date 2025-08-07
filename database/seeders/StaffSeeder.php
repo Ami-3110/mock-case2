@@ -68,18 +68,32 @@ class StaffSeeder extends Seeder
             }
         }
 
-        // 修正申請（※サンプル：ユーザーID/勤怠IDは適当に固定）
+        // 修正申請（サンプルとして、休憩時間の修正も含める）
         foreach (range(1, 10) as $i) {
             $user = $users->random();
             $attendance = Attendance::where('user_id', $user->id)->inRandomOrder()->first();
 
             if ($attendance) {
+                // DBに保存するためにJSONエンコードする休憩データを作成
+                $fixedBreaks = [
+                    [
+                        'break_start' => '12:00',
+                        'break_end' => '13:00',
+                    ],
+                    [
+                        'break_start' => '15:30',
+                        'break_end' => '15:45',
+                    ],
+                ];
+
                 AttendanceCorrectRequest::create([
                     'user_id' => $user->id,
                     'attendance_id' => $attendance->id,
-                    'reason' => '出勤時間を修正したい',
+                    'reason' => '出勤時間と休憩時間を修正したい',
                     'status' => 'pending',
                     'fixed_clock_in' => $attendance->clock_in->copy()->subMinutes(10),
+                    'fixed_clock_out' => $attendance->clock_out,
+                    'fixed_breaks' => json_encode($fixedBreaks), // ここをJSON文字列で入れる
                 ]);
             }
         }

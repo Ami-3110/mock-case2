@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('applications', function (Blueprint $table) {
+        Schema::create('attendance_correct_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('attendance_id')->constrained()->onDelete('cascade');
@@ -19,10 +19,8 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->dateTime('fixed_clock_in')->nullable();
             $table->dateTime('fixed_clock_out')->nullable();
-            $table->dateTime('fixed_break_start')->nullable();
-            $table->dateTime('fixed_break_end')->nullable();
             $table->json('fixed_breaks')->nullable();
-            $table->timestamps();
+            $table->timestamps(); 
         });
     }
 
@@ -31,6 +29,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('applications');
+        Schema::dropIfExists('attendance_correct_requests');
     }
+
 };

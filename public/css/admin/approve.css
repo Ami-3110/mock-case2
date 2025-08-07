@@ -1,0 +1,116 @@
+/* 背景・全体 */
+body {
+    background-color: #F0EFF2;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* タイトル */
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    padding-left: 10px;
+    border-left: 5px solid #000000;
+    color: #000000;
+    margin-bottom: 40px;
+}
+
+/* 表レイアウト */
+.attendance-application {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 8px;
+    border-collapse: collapse;
+    font-size: 14px;
+    color: #737373;
+    font-weight: bold;
+    text-align: left;
+}
+
+.attendance-application th,
+.attendance-application td {
+    padding: 20px 32px;
+    border-bottom: 2px solid #F0EFF2;
+}
+
+.attendance-application th {
+    padding-left: 48px;
+    width: 20%;
+    vertical-align: top;
+}
+
+.attendance-application td {
+    padding-left: 140px;
+}
+
+.date-split {
+    display: inline-flex;
+    align-items: center;
+    gap: 140px;
+}
+
+.time-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.tilde {
+    display: inline-block;
+    width: 50px;
+    text-align: center;
+}
+
+.time {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ボタン */
+form {
+    margin-top: 30px;
+    text-align: right;
+}
+
+.btn-primary {
+    width: 140px;
+    background-color: #000000;
+    color: #FFFFFF;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #333333;
+}
+
+/* 承認済みボタン風表示 */
+.approved {
+    text-align: right;
+    margin-top: 30px;
+}
+
+.approved .text-success {
+    display: inline-block;
+    background-color: #696969;
+    color: #FFFFFF;
+    width: 140px;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: default;
+    user-select: none;
+}

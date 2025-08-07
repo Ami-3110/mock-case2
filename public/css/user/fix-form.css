@@ -1,0 +1,147 @@
+/* 背景・全体 */
+body {
+    background-color: #F0EFF2;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* タイトル */
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    padding-left: 10px;
+    border-left: 5px solid #000000;
+    color: #000000;
+    margin-bottom: 30px;
+}
+
+/* 入力テーブル */
+.fix-form {
+    width: 100%;
+    background: #FFFFFF;
+    border-radius: 8px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+.fix-form th {
+    width: 28%;
+    color: #737373;
+    background: #FFFFFF;
+    text-align: left;
+    font-weight: bold;
+    padding: 16px 18px;
+    vertical-align: middle;
+    white-space: nowrap;
+    border-bottom: solid 3px #F0EFF2;
+    vertical-align: middle;
+}
+
+.fix-form td {
+    color: #000000;
+    background: #FFFFFF;
+    font-weight: bold;
+    padding: 16px 18px;
+    vertical-align: middle;
+    border-bottom: solid 3px #F0EFF2;
+    vertical-align: middle;
+}
+
+.date-split {
+    margin-left: 20px;
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    gap: 140px;
+}
+
+.time-group {
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.tilde {
+    display: inline-block;
+    width: 50px;
+    text-align: center;
+}
+
+/* 入力UI */
+.form {
+    font-size: 16px;
+    color: #000000;
+    background: #FFFFFF;
+    border: 1px solid #E5E5E5;
+    border-radius: 6px;
+    padding: 2px 5px;
+    outline: none;
+    width: 100px;
+    text-align: center;
+    margin: 5px 5px;
+    font-family: sans-serif;
+    font-weight: bold;
+}
+
+.time {
+    font-variant-numeric: tabular-nums;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}
+
+.reason {font-size: 16px;
+    color: #000000;
+    background: #FFFFFF;
+    border: 1px solid #E5E5E5;
+    border-radius: 6px;
+    padding: 10px 12px;
+    outline: none;
+    width: 60%;
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* エラー表示 */
+.error {
+    margin-top: 8px;
+    color: #d32f2f;
+    font-size: 13px;
+}
+
+/* 修正ボタン */
+.btn-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.submit-btn {
+    align-self: flex-end;
+    width: 120px;
+    margin-top: 16px;
+    padding: 10px 35px;
+    background: #000000;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: opacity .15s;
+}
+
+.submit-btn:hover {
+    opacity: 0.85;
+}
+

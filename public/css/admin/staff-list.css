@@ -1,0 +1,62 @@
+/* 背景・全体 */
+body {
+    background-color: #F0EFF2;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* タイトル */
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    padding-left: 10px;
+    border-left: 5px solid #000000;
+    color: #000000;
+    margin-bottom: 70px;
+}
+
+/* テーブル */
+.staff-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+}
+
+.staff-table th,
+.staff-table td {
+    padding: 10px 70px;
+    white-space: nowrap;
+}
+
+.table-header__row th {
+    font-weight: bold;
+    font-size: 14px;
+    color: #737373;
+    border-bottom: 2px solid #F0EFF2;
+}
+
+.table-date__row td {
+    font-size: 14px;
+    font-weight: bold;
+    color: #737373;
+    border-bottom: 1px solid #F0EFF2;
+}
+
+.staff-attendance a {
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.staff-attendance a:hover {
+    text-decoration: underline;
+}

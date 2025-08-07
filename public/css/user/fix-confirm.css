@@ -1,0 +1,94 @@
+/* 背景・全体 */
+body {
+    background-color: #F0EFF2;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* タイトル */
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    padding-left: 10px;
+    border-left: 5px solid #000000;
+    color: #000000;
+    margin-bottom: 30px;
+}
+
+/* 確認テーブル */
+.confirm-table {
+    width: 100%;
+    background: #FFFFFF;
+    border-radius: 8px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+.confirm-table th {
+    width: 28%;
+    color: #737373;
+    background: #FFFFFF;
+    text-align: left;
+    font-weight: bold;
+    padding: 16px 18px;
+    vertical-align: middle;
+    white-space: nowrap;
+    border-bottom: 3px solid #F0EFF2;
+}
+
+.confirm-table td {
+    color: #000000;
+    background: #FFFFFF;
+    padding: 16px 50px;
+    vertical-align: middle;
+    border-bottom: 3px solid #F0EFF2;
+    text-align: left;
+}
+
+.date-split {
+    display: inline-flex;
+    align-items: center;
+    gap: 140px;
+}
+
+.time-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.tilde {
+    display: inline-block;
+    width: 50px;
+    text-align: center;
+}
+
+.time {
+    font-variant-numeric: tabular-nums;
+}
+
+.text-left {
+    text-align: left;
+}
+
+/* 注意書き */
+.submitted {
+    text-align: right;
+    margin-top: 12px;
+}
+
+.submit-message {
+    display: inline-block;
+    color: #f50303;
+    font-size: 12px;
+    letter-spacing: .02em;
+    margin: 0;
+}

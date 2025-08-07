@@ -25,7 +25,7 @@ Route::get('/login', [AuthenticatedSessionController::class, 'showLoginForm']);
 // ログイン処理
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
 
-//認証要
+//要認証・一般ユーザールート
 Route::middleware(['auth', 'verified'])->group(function () {
     // 勤怠登録画面
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
@@ -37,32 +37,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/break/end', [AttendanceController::class, 'breakEnd'])->name('break.end');
     // 退勤処理
     Route::post('/attendance/end', [AttendanceController::class, 'clockOut'])->name('attendance.end');
-    // 勤怠一覧（一般ユーザー）
+    // 勤怠一覧画面
     Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
-    // 勤怠詳細画面
-    Route::get('/attendance/{id}', [AttendanceController::class, 'show'])->name('attendance.show');
-    // 勤怠修正申請処理（一般ユーザー）
+    // 勤怠修正申請フォーム画面
+    Route::get('/attendance/{id}', [AttendanceController::class, 'showFixForm'])->name('attendance.fixForm');
+    // 勤怠修正申請処理
     Route::post('/attendance/{id}/fix-request', [AttendanceController::class, 'requestFix'])->name('attendance.fix');
-    // 勤怠修正申請一覧
+    // 勤怠修正申請確認画面
+    Route::get('/attendance/{id}/fix-confirm', [AttendanceController::class, 'confirmFix'])->name('attendance.fixConfirm');
+    // 勤怠修正申請一覧（一般ユーザー・管理者共通）
     Route::get('/stamp_correction_request/list', [AttendanceController::class, 'correctionList'])->name('stamp_correction_request.list');
     // ログアウト処理
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
-// 管理者専用ルート
+// 要認証・管理者専用ルート
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AdminAuthenticatedSessionController::class, 'store']);
 
-    Route::middleware(['auth', 'verified', IsAdmin::class])->group(function () {
-        // 管理者：日別勤怠一覧（全体）
+    Route::middleware(['auth', IsAdmin::class])->group(function () {
+        // 管理者：日別勤怠一覧
         Route::get('/attendance/list/{date?}', [AdminAttendanceController::class, 'list'])->name('attendance.list');
+        // 管理者：勤怠詳細・修正画面表示
+        Route::get('/attendances/{id}/fix', [AdminAttendanceController::class, 'showFixForm'])->name('attendances.showFixForm');
+        // 管理者：勤怠修正処理
+        Route::post('/attendances/{id}/fix', [AdminAttendanceController::class, 'submitFixRequest'])->name('attendances.fix');
         // 管理者：スタッフ一覧
         Route::get('/staff/list', [AdminAttendanceController::class, 'staffList'])->name('staff.list');
         // 管理者：スタッフ別勤怠一覧
         Route::get('/attendance/staff/{id}', [AdminAttendanceController::class, 'staffAttendance'])->name('attendance.staff');
-        // 管理者：勤怠修正申請一覧
-        Route::get('/stamp_correction_request/list', [AttendanceController::class, 'correctionList'])->name('stamp_correction_request.list');
         // 管理者：修正申請承認画面
         Route::get('/stamp_correction_request/approve/{attendance_correct_request}', [AdminAttendanceController::class, 'approveForm'])->name('correction.approve');
         // 管理者：修正申請承認処理
