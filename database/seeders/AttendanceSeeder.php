@@ -3,39 +3,50 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
 use App\Models\Attendance;
 use App\Models\BreakTime;
+use App\Models\AttendanceCorrectRequest;
 use Faker\Factory as Faker;
 use Carbon\Carbon;
 
 class AttendanceSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        $faker = Faker::create('ja_JP');
+        $start = Carbon::create(2025, 6, 1);
+        $end = Carbon::create(2025, 10, 31);
 
-        foreach (range(1, 30) as $i) {
-            $workDate = Carbon::now()->subDays($i)->startOfDay();
+        $users = User::whereIn('email', [
+            'test@example.com',
+            'reina.n@coachtech.com',
+            'taro.y@coachtech.com',
+            'issei.m@coachtech.com',
+            'keikichi.y@coachtech.com',
+            'tomomi.a@coachtech.com',
+            'norio.n@coachtech.com',
+        ])->get();
 
-            $clockIn = $workDate->copy()->setTime(9, 0, 0);
-            $clockOut = $workDate->copy()->setTime(18, 0, 0);
+        foreach ($users as $user) {
+            $current = $start->copy();
+            while ($current <= $end) {
+                if ($current->isWeekday()) {
+                    $clockIn = $current->copy()->setTime(rand(8, 10), rand(0, 1) ? 0 : 30);
 
-            $attendance = Attendance::create([
-                'user_id' => 1,
-                'work_date' => $workDate->toDateString(),
-                'clock_in' => $clockIn,
-                'clock_out' => $clockOut,
-            ]);
+                    $breakMinutes = rand(30, 90); 
+                    $clockOut = $clockIn->copy()->addHours(8)->addMinutes($breakMinutes);
 
-            // ランダムな休憩を1時間（11:30〜12:30〜13:30あたりで変動）
-            $breakStart = $faker->dateTimeBetween($workDate->copy()->setTime(11, 30), $workDate->copy()->setTime(12, 30));
-            $breakEnd = (clone $breakStart)->modify('+1 hour');
+                    Attendance::create([
+                        'user_id' => $user->id,
+                        'work_date' => $current->toDateString(),
+                        'clock_in' => $clockIn,
+                        'clock_out' => $clockOut,
+                    ]);
+                }
 
-            BreakTime::create([
-                'attendance_id' => $attendance->id,
-                'break_start' => $breakStart,
-                'break_end' => $breakEnd,
-            ]);
+                $current->addDay();
+            }
         }
     }
+
 }

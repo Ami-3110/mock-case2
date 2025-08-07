@@ -8,14 +8,14 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
             AdminUserSeeder::class,
-            StaffSeeder::class,
+            UserSeeder::class,
+            AttendanceSeeder::class,
+            BreakSeeder::class,
+            AttendanceCorrectRequestSeeder::class,
         ]);
     }
     
