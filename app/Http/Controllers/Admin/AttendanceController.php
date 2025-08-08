@@ -5,12 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
-use App\Models\BreakTime;
 use App\Models\User;
-use App\Models\AttendanceCorrectRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Models\AttendanceCorrectRequest as AttendanceCorrectRequestModel;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Http\Requests\AdminStampCorrectionRequest;
@@ -63,7 +60,7 @@ class AttendanceController extends Controller
     }
 
     // 勤怠修正処理 //
-    public function submitFixRequest(Request $request, $id)
+    public function submitFixRequest(AdminStampCorrectionRequest $request, $id)
     {
         $attendance = Attendance::with('breakTimes')->findOrFail($id);
 
@@ -74,14 +71,10 @@ class AttendanceController extends Controller
             $start = $break['break_start'] ?? null;
             $end = $break['break_end'] ?? null;
 
-            // 両方 --:-- の場合はスキップ（削除扱い）
             if ($start === '--:--' && $end === '--:--') {
                 continue;
             }
 
-            // 片方だけ --:-- の場合はバリデーションで弾れるはずなのでここでは想定しない
-
-            // どちらも時刻が入力されていれば、修正申請値として保存
             if ($start && $end) {
                 $fixedBreaks[] = [
                     'break_start' => $start,
@@ -91,7 +84,7 @@ class AttendanceController extends Controller
             }
         }
 
-        AttendanceCorrectRequest::create([
+        AttendanceCorrectRequestModel::create([
             'user_id' => $attendance->user_id,
             'attendance_id' => $attendance->id,
             'reason' => $request->input('reason'),
@@ -193,52 +186,59 @@ class AttendanceController extends Controller
         return $response;
     }
 
-    // 修正申請の承認画面表示 //
-    public function approveForm(AttendanceCorrectRequest $attendanceCorrectRequest)
+ // 修正申請の承認画面表示 //
+    public function approveForm(Request $request)
     {
-        $user = $attendanceCorrectRequest->user;
-
+        $acrId = $request->route('attendance_correct_request')
+            ?? $request->query('id');
+    
+        $attendanceCorrectRequest = AttendanceCorrectRequestModel::with(['user','attendance.breakTimes'])
+            ->findOrFail($acrId);
+    
         return view('stamp_correction_request.approve', [
             'attendanceCorrectRequest' => $attendanceCorrectRequest,
             'user' => $attendanceCorrectRequest->user,
         ]);
     }
 
-    // 修正申請の承認処理 //
-    public function approveApplication(AttendanceCorrectRequest $attendanceCorrectRequest)
+   // 修正申請の承認処理 //
+    public function approveApplication(Request $request)
     {
+        $acrId = $request->route('attendance_correct_request')
+            ?? $request->input('id');
+
+        $attendanceCorrectRequest = AttendanceCorrectRequestModel::with('attendance.breakTimes')
+            ->findOrFail($acrId);
+
         $attendance = $attendanceCorrectRequest->attendance;
 
         DB::transaction(function () use ($attendanceCorrectRequest, $attendance) {
             $attendance->update([
-                'clock_in' => $attendanceCorrectRequest->fixed_clock_in,
+                'clock_in'  => $attendanceCorrectRequest->fixed_clock_in,
                 'clock_out' => $attendanceCorrectRequest->fixed_clock_out,
             ]);
 
-            if (!empty($attendanceCorrectRequest->fixed_breaks)) {
-                $attendance->breakTimes()->delete();
-            
-                $fixedBreaks = is_string($attendanceCorrectRequest->fixed_breaks)
-                    ? json_decode($attendanceCorrectRequest->fixed_breaks, true)
-                    : $attendanceCorrectRequest->fixed_breaks;
-            
-                $date = Carbon::parse($attendance->work_date)->format('Y-m-d'); // ← ここで日付だけ取り出す
-            
-                foreach ($fixedBreaks as $break) {
-                    // ここで日付＋時刻の文字列を作る
-                    $breakStart = Carbon::parse($date . ' ' . $break['break_start']);
-                    $breakEnd = Carbon::parse($date . ' ' . $break['break_end']);
-            
-                    $attendance->breakTimes()->create([
-                        'break_start' => $breakStart,
-                        'break_end' => $breakEnd,
-                    ]);
+            // 休憩再作成
+            $attendance->breakTimes()->delete();
+
+            $fixedBreaks = is_string($attendanceCorrectRequest->fixed_breaks)
+                ? json_decode($attendanceCorrectRequest->fixed_breaks, true)
+                : ($attendanceCorrectRequest->fixed_breaks ?? []);
+
+            $date = Carbon::parse($attendance->work_date)->format('Y-m-d');
+
+            foreach ($fixedBreaks as $break) {
+                // どっちか欠けてたらスキップ（念のため防御）
+                if (empty($break['break_start']) || empty($break['break_end'])) {
+                    continue;
                 }
+                $attendance->breakTimes()->create([
+                    'break_start' => Carbon::parse("$date {$break['break_start']}"),
+                    'break_end'   => Carbon::parse("$date {$break['break_end']}"),
+                ]);
             }
-            
-            $attendanceCorrectRequest->update([
-                'status' => 'approved',
-            ]);
+
+            $attendanceCorrectRequest->update(['status' => 'approved']);
         });
 
         $attendanceCorrectRequest->refresh();
@@ -247,5 +247,5 @@ class AttendanceController extends Controller
             'attendanceCorrectRequest' => $attendanceCorrectRequest,
             'user' => $attendanceCorrectRequest->user,
         ]);
-    }  
+    }
 }

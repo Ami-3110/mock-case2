@@ -9,8 +9,19 @@ use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController as AdminAuthe
 
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
 use App\Http\Controllers\AttendanceController;
-
 use App\Http\Middleware\IsAdmin;
+
+// use App\Http\Middleware\IsAdmin;
+// use Illuminate\Support\Facades\Mail;
+// MailHogテストメール用
+// Route::get('/test-mail', function () {
+//     Mail::raw('テストメールです！', function ($message) {
+//         $message->to('test@example.com')
+//                ->subject('テスト送信');
+//     });
+// 
+//     return '送信しました';
+// });
 
 Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
 // 会員登録処理
@@ -21,9 +32,9 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
     return redirect()->route('attendance.index');
 })->middleware(['signed'])->name('verification.verify');
 // ログイン画面
-Route::get('/login', [AuthenticatedSessionController::class, 'showLoginForm']);
+Route::get('/login', [AuthenticatedSessionController::class, 'showLoginForm'])->name('login');
 // ログイン処理
-Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
 //要認証・一般ユーザールート
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -79,3 +90,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('logout');
     });
 });
+
+
+

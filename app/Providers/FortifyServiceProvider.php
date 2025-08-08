@@ -13,6 +13,9 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Contracts\VerifyEmailViewResponse;
+use Laravel\Fortify\Http\Responses\ViewResponse;
+use Illuminate\Contracts\Support\Responsable;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -34,6 +37,13 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
+        Fortify::verifyEmailView(function () {
+            return view('auth.verify-email');
+            });
+        
+        $this->app->singleton(VerifyEmailViewResponse::class, function () {
+            return new ViewResponse('auth.verify-email');
+        });
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());

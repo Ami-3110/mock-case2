@@ -3,9 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 use Carbon\CarbonInterval;
-use Illuminate\Support\Facades\Log;
 use App\Models\AttendanceCorrectRequest;
 
 class Attendance extends Model

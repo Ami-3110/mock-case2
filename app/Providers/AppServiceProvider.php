@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Contracts\VerifyEmailViewResponse;
+use App\Actions\Fortify\CustomVerifyEmailViewResponse;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +13,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(VerifyEmailViewResponse::class, CustomVerifyEmailViewResponse::class);
+
     }
 
     /**
