@@ -6,8 +6,8 @@
 <div class="container">
     <div class="status-box">
         <p>{{ $status }}</p>
-        <p><span class="current-date" id="current-date"></span></p>
-        <p><span class="current-time time" id="current-time"></span></p>
+        <p><span class="current-date" id="current-date">{{ $date }}</span></p>
+        <p><span class="current-time time" id="current-time">{{ $time }}</span></p>
     </div>
 
     @if ($status === '勤務外')
@@ -15,7 +15,7 @@
             @csrf
             <button class="action-work"type="submit">出勤</button>
         </form>
-    @elseif ($status === '勤務中')
+    @elseif ($status === '出勤中')
         <div class="button-group">
             <form method="POST" action="{{ route('attendance.end') }}">
                 @csrf

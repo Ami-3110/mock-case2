@@ -92,3 +92,23 @@ body {
     letter-spacing: .02em;
     margin: 0;
 }
+
+/* 承認済みボタン風表示 */
+.approved {
+    text-align: right;
+    margin-top: 30px;
+}
+
+.approved .text-success {
+    display: inline-block;
+    background-color: #696969;
+    color: #FFFFFF;
+    width: 140px;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: default;
+    user-select: none;
+}

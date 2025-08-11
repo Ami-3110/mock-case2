@@ -11,18 +11,6 @@ use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController
 use App\Http\Controllers\AttendanceController;
 use App\Http\Middleware\IsAdmin;
 
-// use App\Http\Middleware\IsAdmin;
-// use Illuminate\Support\Facades\Mail;
-// MailHogテストメール用
-// Route::get('/test-mail', function () {
-//     Mail::raw('テストメールです！', function ($message) {
-//         $message->to('test@example.com')
-//                ->subject('テスト送信');
-//     });
-// 
-//     return '送信しました';
-// });
-
 Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
 // 会員登録処理
 Route::post('/register', [RegisteredUserController::class, 'store']);
@@ -35,6 +23,8 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
 Route::get('/login', [AuthenticatedSessionController::class, 'showLoginForm'])->name('login');
 // ログイン処理
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+
+
 
 //要認証・一般ユーザールート
 Route::middleware(['auth', 'verified'])->group(function () {

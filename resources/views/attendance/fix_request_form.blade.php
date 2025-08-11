@@ -51,7 +51,7 @@
             <tr>
                 <th>備考</th>
                 <td>
-                    <textarea class="reason" name="reason">{{ old('reason') }}</textarea>
+                    <textarea class="reason" name="reason">{{ old('reason', $lastReason ?? '') }}</textarea>                      
                     @error('reason')
                         <div class="error">{{ $message }}</div>
                     @enderror

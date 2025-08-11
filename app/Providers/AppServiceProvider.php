@@ -14,7 +14,6 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(VerifyEmailViewResponse::class, CustomVerifyEmailViewResponse::class);
-
     }
 
     /**

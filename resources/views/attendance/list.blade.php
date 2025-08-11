@@ -48,15 +48,15 @@
                         ({{ $weekdays[$attendance->work_date->dayOfWeek] }})
                     </td>                    
                     <td class="time">{{ $attendance->clock_in ? $attendance->clock_in->format('H:i') : '未打刻' }}</td>
-                    <td class="time">{{ $attendance->clock_out ? $attendance->clock_out->format('H:i') : '未打刻' }}</td></td>
+                    <td class="time">{{ $attendance->clock_out ? $attendance->clock_out->format('H:i') : '未打刻' }}</td>
                     <td>{{ $attendance->break_time }}</td>
                     <td>{{ $attendance->work_time }}</td>
                     <td>
-                        @if ($attendance->attendanceCorrectRequest && $attendance->attendanceCorrectRequest->status === 'pending')
-                        <a href="{{ route('attendance.fixConfirm', $attendance->id) }}" class="attendance-detail">詳細</a>
-                        @else
+                      @if ($attendance->latestAttendanceCorrectRequest && $attendance->latestAttendanceCorrectRequest->status === 'pending')
+                      <a href="{{ route('attendance.fixConfirm', $attendance->id) }}" class="attendance-detail">詳細</a>
+                      @else
                         <a href="{{ route('attendance.fixForm', $attendance->id) }}" class="attendance-detail">詳細</a>
-                        @endif
+                      @endif                    
                       </td>
                 </tr>
             @endforeach
