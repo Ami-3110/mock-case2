@@ -185,6 +185,29 @@ class AttendanceController extends Controller
 
         return $response;
     }
+ // 修正申請の承認一覧表示（コーチのご指示により増設） //
+    public function correctionList(Request $request)
+    {
+        $query = AttendanceCorrectRequestModel::with(['user', 'attendance'])
+            ->orderByDesc('created_at');
+    
+        // 任意：status=pending/approved で絞りたい時用の簡易フィルタ
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+    
+        $applications = $query->get();
+    
+        $pendingApplications  = $applications->where('status', 'pending');
+        $approvedApplications = $applications->where('status', 'approved');
+    
+        return view('stamp_correction_request.list', [
+            'pendingApplications'  => $pendingApplications,
+            'approvedApplications' => $approvedApplications,
+        ]);
+    }
+
+
 
  // 修正申請の承認画面表示 //
     public function approveForm(Request $request)

@@ -43,10 +43,8 @@ class ID09_AttendanceListTest extends TestCase
         $res = $this->get(route('attendance.list', ['year' => 2025, 'month' => '08']))
             ->assertOk();
 
-        // ヘッダの月表示（例: 2025/08）
         $res->assertSee('2025/08');
 
-        // 日付セルは m/d、時刻は H:i
         $res->assertSee('08/08')
             ->assertSee('09:00')
             ->assertSee('18:00');
@@ -56,7 +54,6 @@ class ID09_AttendanceListTest extends TestCase
     {
         $user = $this->loginUser();
 
-        // 自分の退勤済
         Attendance::create([
             'user_id'   => $user->id,
             'work_date' => Carbon::create(2025, 8, 8),
@@ -64,7 +61,6 @@ class ID09_AttendanceListTest extends TestCase
             'clock_out' => Carbon::create(2025, 8, 8, 18, 0),
         ]);
 
-        // 他人の退勤済（混ざらないはず）
         Attendance::create([
             'user_id'   => User::factory()->create()->id,
             'work_date' => Carbon::create(2025, 8, 8),
@@ -77,10 +73,8 @@ class ID09_AttendanceListTest extends TestCase
 
         $html = $res->getContent();
 
-        // 自分の行（08/08）が1回だけ
         $this->assertSame(1, substr_count($html, '08/08'));
 
-        // 他人の時刻は出ない
         $this->assertStringNotContainsString('09:30', $html);
         $this->assertStringNotContainsString('17:00', $html);
     }
@@ -132,20 +126,15 @@ class ID09_AttendanceListTest extends TestCase
             'clock_out' => Carbon::create(2025, 8, 8, 18, 0),
         ]);
 
-        // 一覧（雰囲気出し）
         $this->get(route('attendance.list', ['year' => 2025, 'month' => '08']))->assertOk();
 
-        // 詳細へ
         $res = $this->get(route('attendance.fixForm', $attendance->id))->assertOk();
 
-        // タイトル
         $res->assertSee('勤怠詳細');
 
-        // 日付（分割表示：Y年 / n月j日）
         $res->assertSee($attendance->work_date->format('Y') . '年');
         $res->assertSee($attendance->work_date->format('n月j日'));
 
-        // 入力欄の時刻を input 属性としてチェック（クォート/スペースの差異に強い）
         $html = $res->getContent();
         $this->assertMatchesRegularExpression('/name="fixed_clock_in"[^>]*value="?\s*09:00\s*"?/u', $html);
         $this->assertMatchesRegularExpression('/name="fixed_clock_out"[^>]*value="?\s*18:00\s*"?/u', $html);

@@ -26,9 +26,6 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * 管理者ログイン
-     */
     private function loginAdmin(): User
     {
         $admin = User::factory()->create([
@@ -40,9 +37,6 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
         return $admin;
     }
 
-    /**
-     * 勤怠詳細：選択した勤怠が表示されること
-     */
     public function test_勤怠詳細_選択した勤怠が表示される(): void
     {
         Carbon::setTestNow(Carbon::create(2025, 8, 9, 9, 0));
@@ -51,7 +45,6 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
         $u1 = User::factory()->create(['name' => '太郎']);
         $u2 = User::factory()->create(['name' => '花子']);
 
-        // 2件用意して、片方だけが表示されることを確認
         $a1 = Attendance::create([
             'user_id'   => $u1->id,
             'work_date' => Carbon::today(),
@@ -70,14 +63,11 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
             ->assertSee('太郎')
             ->assertSee('09:00')
             ->assertSee('18:00')
-            ->assertDontSee('花子')   // 別勤怠の情報は混ざらない
+            ->assertDontSee('花子') 
             ->assertDontSee('10:00')
             ->assertDontSee('19:00');
     }
 
-    /**
-     * 出勤 > 退勤 ならエラー
-     */
     public function test_出勤が退勤より後ならエラー(): void
     {
         $this->loginAdmin();
@@ -100,9 +90,6 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
         $res->assertSessionHasErrors(['fixed_clock_in']);
     }
 
-    /**
-     * 休憩開始 > 退勤 ならエラー
-     */
     public function test_休憩開始が退勤より後ならエラー(): void
     {
         $this->loginAdmin();
@@ -127,9 +114,6 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
         $res->assertSessionHasErrors(['fixed_breaks.0.break_start']);
     }
 
-    /**
-     * 休憩終了 > 退勤 ならエラー
-     */
     public function test_休憩終了が退勤より後ならエラー(): void
     {
         $this->loginAdmin();
@@ -154,9 +138,6 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
         $res->assertSessionHasErrors(['fixed_breaks.0.break_end']);
     }
 
-    /**
-     * 備考（理由）未入力ならエラー
-     */
     public function test_備考未入力ならエラー(): void
     {
         $this->loginAdmin();
@@ -173,7 +154,6 @@ class ID13_AdminAttendanceDetailFixTest extends TestCase
             'fixed_clock_in'  => '09:05',
             'fixed_clock_out' => '18:10',
             'fixed_breaks'    => [],
-            // 'reason' => (未入力)
         ]);
 
         $res->assertSessionHasErrors(['reason']);

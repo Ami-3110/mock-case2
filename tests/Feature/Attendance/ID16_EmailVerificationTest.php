@@ -23,10 +23,8 @@ class ID16_EmailVerificationTest extends TestCase
 
     public function 会員登録後に認証メールが送信される(): void
     {
-        // メール送信のモック
         Notification::fake();
 
-        // ユーザー登録
         $response = $this->post('/register', [
             'name' => '新規ユーザー',
             'email' => 'newuser@example.com',
@@ -34,56 +32,44 @@ class ID16_EmailVerificationTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        // 登録後にリダイレクトされる先（ここでは例としてログイン画面にリダイレクト）
         $response->assertRedirect('/login');
 
-        // ユーザーが作成されたことを確認
         $user = \App\Models\User::where('email', 'newuser@example.com')->first();
         $this->assertNotNull($user, 'ユーザーが作成されていません');
 
-        // 認証メールが送信されたか確認
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 
     public function メール認証誘導画面で「認証はこちらから」ボタンを押下するとメール認証サイトに遷移する(): void
     {
-        // ユーザーを作成
         $user = User::factory()->create();
 
-        // 仮の認証リンク（本番環境では実際のハッシュを使用）
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1($user->email)]
         );
 
-        // ユーザーをログイン状態にして認証リンクをアクセス
         $response = $this->actingAs($user)->get($verificationUrl);
 
-        // リダイレクトされるべきURLを確認（リダイレクト先は仮のものに調整）
-        $response->assertRedirect('/attendance'); // リダイレクト先が正しいか確認
+        $response->assertRedirect('/attendance'); 
     }
 
     public function メール認証サイトのメール認証を完了すると、勤怠登録画面に遷移する(): void
     {
-        // ユーザーを作成（未認証状態）
         $user = User::factory()->unverified()->create();
 
-        // 認証リンクの取得
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1($user->email)]
         );
 
-        // ユーザーが認証前であることを確認
         $this->assertFalse($user->hasVerifiedEmail());
 
-        // 認証リンクをクリックしてリダイレクトされることを確認
         $response = $this->actingAs($user)->get($verificationUrl);
-        $response->assertRedirect('/attendance'); // 勤怠登録画面にリダイレクトされる
+        $response->assertRedirect('/attendance');
 
-        // 認証が完了したことを確認
         $user->refresh();
         $this->assertTrue($user->hasVerifiedEmail());
     }

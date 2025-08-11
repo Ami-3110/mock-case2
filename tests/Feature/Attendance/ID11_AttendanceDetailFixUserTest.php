@@ -50,7 +50,7 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
         $attendance = $this->makeAttendance($user);
 
         $res = $this->post(route('attendance.fix', $attendance->id), [
-            'fixed_clock_in'  => '19:00', // 退勤より後
+            'fixed_clock_in'  => '19:00',
             'fixed_clock_out' => '18:00',
             'fixed_breaks'    => [],
             'reason'          => '調整',
@@ -68,7 +68,7 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
             'fixed_clock_in'  => '09:00',
             'fixed_clock_out' => '18:00',
             'fixed_breaks'    => [
-                ['break_start' => '19:00', 'break_end' => '19:10'], // 退勤後
+                ['break_start' => '19:00', 'break_end' => '19:10'],
             ],
             'reason'          => '調整',
         ]);
@@ -85,7 +85,7 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
             'fixed_clock_in'  => '09:00',
             'fixed_clock_out' => '18:00',
             'fixed_breaks'    => [
-                ['break_start' => '17:50', 'break_end' => '19:10'], // 終了が退勤後
+                ['break_start' => '17:50', 'break_end' => '19:10'],
             ],
             'reason'          => '調整',
         ]);
@@ -102,7 +102,6 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
             'fixed_clock_in'  => '09:00',
             'fixed_clock_out' => '18:00',
             'fixed_breaks'    => [],
-            // 'reason' なし
         ]);
 
         $res->assertSessionHasErrors(['reason']);
@@ -120,7 +119,7 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
                 ['break_start' => '12:00', 'break_end' => '12:30'],
             ],
             'reason'          => '昼休み延長のため',
-        ])->assertRedirect(); // 確認画面や一覧にリダイレクト想定
+        ])->assertRedirect();
 
         $this->assertDatabaseHas('attendance_correct_requests', [
             'attendance_id' => $attendance->id,
@@ -128,14 +127,11 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
             'status'        => 'pending',
         ]);
 
-        // ユーザー用 申請一覧（ルート名不明のためパスで）
         $res = $this->get('/stamp_correction_request/list')->assertOk();
         $html = $res->getContent();
 
-        // 文言と、申請した日付や理由の一部が出ているか
         $this->assertStringContainsString('承認待ち', $html);
         $this->assertStringContainsString('昼休み延長', $html);
-        // 当該日付表示（UI準拠で m/d などに合わせて必要なら調整）
         $this->assertTrue(
             str_contains($html, $attendance->work_date->format('m/d')) ||
             str_contains($html, $attendance->work_date->format('Y/m/d')) ||
@@ -149,7 +145,6 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
         $user = $this->loginUser();
         $attendance = $this->makeAttendance($user);
 
-        // 直接承認済みレコードを用意（管理者処理は別IDで担保）
         AttendanceCorrectRequest::create([
             'attendance_id' => $attendance->id,
             'user_id'       => $user->id,
@@ -184,15 +179,10 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
             'fixed_clock_out'=> '18:20',
         ]);
 
-        // 一覧は到達のみ確認（リンク有無はE2Eで担保がおすすめ）
         $this->get('/stamp_correction_request/list')->assertOk();
 
-        // 申請詳細のルートが未確定なので複数候補をフォールバックで試行
-        // 1) もしユーザー側詳細があるなら（例）/stamp_correction_request/{id}
         $detailPaths = [
             "/stamp_correction_request/{$req->id}",
-            // 実装次第で変えてOK。以下は保険で残しておく例
-            // "/stamp_correction_request/detail/{$req->id}",
         ];
 
         $ok = false;
@@ -205,12 +195,10 @@ class ID11_AttendanceDetailFixUserTest extends TestCase
             }
         }
 
-        // もしユーザー側詳細ページが無い設計なら、確認画面を詳細代替として許容
         if (! $ok) {
-            // 確認画面（fix-confirm）は提出前の確認だけど、詳細表示に近い情報を持つ
             $confirm = $this->get(route('attendance.fixConfirm', $attendance->id));
             $confirm->assertOk();
-            $confirm->assertSee('勤怠詳細'); // 画面に合わせてキーワード調整OK
+            $confirm->assertSee('勤怠詳細');
         } else {
             $this->assertTrue($ok, '申請詳細ページに遷移できませんでした');
         }

@@ -26,7 +26,6 @@ class ID01_RegisterTest extends TestCase
     public function test_名前が未入力だとエラーになる(): void
     {
         $res = $this->post('/register', [
-            // 'name' => '',
             'email' => 'a@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
@@ -39,7 +38,6 @@ class ID01_RegisterTest extends TestCase
     {
         $res = $this->post('/register', [
             'name' => 'あみ',
-            // 'email' => '',
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
@@ -76,7 +74,6 @@ class ID01_RegisterTest extends TestCase
         $res = $this->post('/register', [
             'name' => 'あみ',
             'email' => 'a@example.com',
-            // 'password' => '',
             'password_confirmation' => '',
         ]);
 

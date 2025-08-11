@@ -32,7 +32,6 @@ class ID03_AdminLoginTest extends TestCase
     public function test_メール未入力でエラー(): void
     {
         $res = $this->post('/admin/login', [
-            // 'email' => '',
             'password' => 'password123',
         ]);
 
@@ -43,7 +42,6 @@ class ID03_AdminLoginTest extends TestCase
     {
         $res = $this->post('/admin/login', [
             'email' => 'admin@example.com',
-            // 'password' => '',
         ]);
 
         $res->assertSessionHasErrors(['password']);
@@ -58,7 +56,6 @@ class ID03_AdminLoginTest extends TestCase
             'password' => 'password123',
         ]);
 
-        // 失敗時は通常 'email' にエラーが付く
         $res->assertSessionHasErrors(['email']);
     }
 
@@ -71,7 +68,6 @@ class ID03_AdminLoginTest extends TestCase
             'password' => 'password123',
         ]);
 
-        // 実装の遷移先に合わせて必要なら route(...) に変更
         $res->assertRedirect();
         $this->assertAuthenticatedAs($admin);
     }

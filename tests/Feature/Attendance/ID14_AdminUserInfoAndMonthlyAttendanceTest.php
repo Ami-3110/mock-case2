@@ -40,11 +40,10 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
 
         $u1 = User::factory()->create(['name' => '田中 太郎', 'email' => 'taro@example.com', 'is_admin' => false]);
         $u2 = User::factory()->create(['name' => '山田 花子', 'email' => 'hanako@example.com', 'is_admin' => false]);
-        // 管理者は既に作成済み
 
         $res = $this->get(route('admin.staff.list'));
         $res->assertOk()
-            ->assertSee('スタッフ一覧'); // 画面見出しに合わせて適宜
+            ->assertSee('スタッフ一覧');
         $html = $res->getContent();
 
         $this->assertStringContainsString('田中 太郎', $html);
@@ -53,7 +52,6 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
         $this->assertStringContainsString('hanako@example.com', $html);
     }
 
-    /** 月次勤怠：当月が表示され、日別の勤怠が見える（ユーザー別） */
     public function test_ユーザー月次勤怠_当月が表示され_日別勤怠が見える(): void
     {
         Carbon::setTestNow(Carbon::create(2025, 8, 9, 9, 0));
@@ -61,7 +59,6 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
 
         $u = User::factory()->create(['name' => '田中 太郎']);
 
-        // 2025-08 当月：8/1, 8/2
         $a1 = Attendance::create([
             'user_id' => $u->id,
             'work_date' => Carbon::create(2025, 8, 1),
@@ -75,7 +72,6 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
             'clock_out' => Carbon::create(2025, 8, 2, 19, 0),
         ]);
 
-        // 前月 7月・翌月 9月にダミー
         Attendance::create([
             'user_id' => $u->id,
             'work_date' => Carbon::create(2025, 7, 31),
@@ -97,7 +93,6 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
         $res->assertOk();
         $html = $res->getContent();
 
-        // 当月表示（ヘッダなど）
         $this->assertTrue(
             str_contains($html, '2025/08') ||
             str_contains($html, '2025年8月') ||
@@ -105,7 +100,6 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
             '当月の見出しが表示されていません'
         );
 
-        // 当月の2日分が見える
         $res->assertSee('08/01');
         $res->assertSee('08/02');
         $res->assertSee('09:00');
@@ -113,12 +107,10 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
         $res->assertSee('10:00');
         $res->assertSee('19:00');
 
-        // 前月/翌月の打刻は混ざらない
         $this->assertStringNotContainsString('07/31', $html);
         $this->assertStringNotContainsString('09/01', $html);
     }
 
-    /** 月次勤怠：前月ボタンで前月、翌月ボタンで翌月の情報が表示される */
     public function test_ユーザー月次勤怠_前月ボタン翌月ボタンで月を切り替えられる(): void
     {
         Carbon::setTestNow(Carbon::create(2025, 8, 9, 9, 0));
@@ -126,7 +118,6 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
 
         $u = User::factory()->create(['name' => '田中 太郎']);
 
-        // 7月・8月・9月に各1件
         foreach ([['y'=>2025,'m'=>7,'h'=>8], ['y'=>2025,'m'=>8,'h'=>9], ['y'=>2025,'m'=>9,'h'=>10]] as $p) {
             $d = Carbon::create($p['y'], $p['m'], 15);
             Attendance::create([
@@ -137,20 +128,16 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
             ]);
         }
 
-        // 当月=8月
         $this->get(route('admin.attendance.staff', ['id'=>$u->id,'year'=>2025,'month'=>8]))
             ->assertOk()->assertSee('2025')->assertSee('08');
 
-        // 前月=7月
         $this->get(route('admin.attendance.staff', ['id'=>$u->id,'year'=>2025,'month'=>7]))
             ->assertOk()->assertSee('2025')->assertSee('07')->assertSee('08:00');
 
-        // 翌月=9月
         $this->get(route('admin.attendance.staff', ['id'=>$u->id,'year'=>2025,'month'=>9]))
             ->assertOk()->assertSee('2025')->assertSee('09')->assertSee('10:00');
     }
 
-    /** 月次勤怠：「詳細」でその日の管理者用勤怠詳細に遷移する */
     public function test_ユーザー月次勤怠_詳細ボタンでその日の勤怠詳細に遷移する(): void
     {
         $this->loginAdmin();
@@ -164,11 +151,9 @@ class ID14_AdminUserInfoAndMonthlyAttendanceTest extends TestCase
             'clock_out' => $d->copy()->setTime(19, 0),
         ]);
 
-        // 月次ページ到達
         $this->get(route('admin.attendance.staff', ['id'=>$u->id,'year'=>2025,'month'=>8]))
             ->assertOk();
 
-        // 詳細先（画面のリンクは a タグのはずだが、ここでは直接到達確認）
         $this->get(route('admin.attendances.showFixForm', $a->id))
             ->assertOk()
             ->assertSee('10:00')

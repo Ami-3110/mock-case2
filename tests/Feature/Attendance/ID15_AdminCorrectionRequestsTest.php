@@ -23,7 +23,6 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** 管理者ログイン */
     private function loginAdmin(): User
     {
         $admin = User::factory()->create([
@@ -35,7 +34,6 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
         return $admin;
     }
 
-    /** 承認待ち/承認済みの申請が一覧に表示されること */
     public function test_申請一覧_承認待ちと承認済みが全て表示される(): void
     {
         $this->loginAdmin();
@@ -56,7 +54,6 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
             'clock_out' => Carbon::create(2025,8,9,19,0),
         ]);
 
-        // 承認待ち 2件
         AttendanceCorrectRequest::create([
             'attendance_id' => $a1->id, 'user_id' => $u1->id,
             'status' => 'pending', 'reason' => '昼休み延長',
@@ -68,7 +65,6 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
             'fixed_clock_in' => '10:05', 'fixed_clock_out' => '19:00',
         ]);
 
-        // 承認済み 1件
         AttendanceCorrectRequest::create([
             'attendance_id' => $a1->id, 'user_id' => $u1->id,
             'status' => 'approved', 'reason' => '過去分修正',
@@ -79,7 +75,6 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
         $res->assertOk();
         $html = $res->getContent();
 
-        // 見出し（ゆるめに）
         $this->assertTrue(
             str_contains($html, '承認待ち') || str_contains($html, 'Pending'),
             '承認待ちセクションが見つかりません'
@@ -89,13 +84,11 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
             '承認済みセクションが見つかりません'
         );
 
-        // 各申請の理由（= レコードの存在）で確認
         $this->assertStringContainsString('昼休み延長', $html);
         $this->assertStringContainsString('電車遅延', $html);
         $this->assertStringContainsString('過去分修正', $html);
     }
 
-    /** 承認画面（詳細）で内容が正しく表示されること */
     public function test_申請詳細_内容が正しく表示される(): void
     {
         $this->loginAdmin();
@@ -121,7 +114,7 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
             ],
         ]);
 
-        $this->get(route('admin.correction.approve', $req->id))
+        $this->get(route('admin.requests.show', $req->id))
             ->assertOk()
             ->assertSee('管理者確認テスト')
             ->assertSee('09:10')
@@ -132,7 +125,6 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
             ->assertSee('15:10');
     }
 
-    /** 承認処理：勤怠/休憩が更新され、申請が承認済みになること */
     public function test_承認処理で勤怠更新と申請承認が行われる(): void
     {
         $this->loginAdmin();
@@ -147,14 +139,12 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
             'clock_out' => $date->copy()->setTime(18, 0),
         ]);
 
-        // 既存の休憩（後で差し替えられるはず）
         BreakTime::create([
             'attendance_id' => $a->id,
             'break_start' => $date->copy()->setTime(12, 0),
             'break_end'   => $date->copy()->setTime(12, 30),
         ]);
 
-        // 修正申請（承認待ち）
         $req = AttendanceCorrectRequest::create([
             'attendance_id' => $a->id,
             'user_id'       => $u->id,
@@ -168,22 +158,18 @@ class ID15_AdminCorrectionRequestsTest extends TestCase
             ],
         ]);
 
-        // 承認実行
-        $res = $this->post(route('admin.correction.approve.submit', $req->id));
+        $res = $this->post(route('admin.requests.update', $req->id));
         $res->assertSuccessful();
 
-        // 申請が承認済み
         $this->assertDatabaseHas('attendance_correct_requests', [
             'id'     => $req->id,
             'status' => 'approved',
         ]);
 
-        // 勤怠が更新されている
         $a->refresh();
         $this->assertEquals('09:05', $a->clock_in->format('H:i'));
         $this->assertEquals('18:10', $a->clock_out->format('H:i'));
 
-        // 休憩が置き換わっている（件数&内容で確認）
         $breaks = BreakTime::where('attendance_id', $a->id)->orderBy('break_start')->get();
         $this->assertCount(2, $breaks);
         $this->assertEquals('12:05', Carbon::parse($breaks[0]->break_start)->format('H:i'));

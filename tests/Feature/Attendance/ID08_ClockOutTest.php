@@ -44,7 +44,6 @@ class ID08_ClockOutTest extends TestCase
     {
         $this->login();
 
-        // 出勤→退勤の時刻を固定（JST）
         Carbon::setTestNow(Carbon::create(2025, 8, 8, 9, 0, 0));
         $this->post(route('attendance.start'))->assertRedirect(route('attendance.index'));
 
@@ -54,13 +53,11 @@ class ID08_ClockOutTest extends TestCase
         $attendance = Attendance::first();
         $this->assertNotNull($attendance->clock_out);
 
-        // 一覧は退勤済のみ表示仕様。年月を明示して取得
         $res = $this->get(route('attendance.list', [
             'year'  => 2025,
             'month' => '08',
         ]))->assertOk();
 
-        // 当日行 + 退勤時刻（ビューは H:i 表示）
         $res->assertSee($attendance->work_date->format('m/d'));
         $res->assertSee($attendance->clock_out->format('H:i')); // 18:45
     }

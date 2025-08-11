@@ -35,7 +35,6 @@ class ID07_BreakTimeTest extends TestCase
 
         $this->post(route('attendance.start'))->assertRedirect(route('attendance.index'));
 
-        // 休憩入
         $this->post(route('break.start'))->assertRedirect(route('attendance.index'));
         $this->assertDatabaseHas('breaks', [
             'attendance_id' => Attendance::first()->id,
@@ -43,7 +42,6 @@ class ID07_BreakTimeTest extends TestCase
         ]);
         $this->get(route('attendance.index'))->assertOk()->assertSee('休憩中');
 
-        // 休憩戻
         $this->post(route('break.end'))->assertRedirect(route('attendance.index'));
         $this->assertNotNull(BreakTime::first()->break_end);
         $this->get(route('attendance.index'))->assertOk()->assertSee('出勤中');
@@ -55,11 +53,9 @@ class ID07_BreakTimeTest extends TestCase
 
         $this->post(route('attendance.start'))->assertRedirect(route('attendance.index'));
 
-        // 1回目
         $this->post(route('break.start'))->assertRedirect(route('attendance.index'));
         $this->post(route('break.end'))->assertRedirect(route('attendance.index'));
 
-        // 2回目
         $this->post(route('break.start'))->assertRedirect(route('attendance.index'));
         $this->post(route('break.end'))->assertRedirect(route('attendance.index'));
 
@@ -71,7 +67,6 @@ class ID07_BreakTimeTest extends TestCase
     {
         $this->login();
 
-        // 固定して作る（休憩30分）
         Carbon::setTestNow(Carbon::create(2025, 8, 8, 9, 0, 0));
         $this->post(route('attendance.start'))->assertRedirect(route('attendance.index'));
 
@@ -81,21 +76,16 @@ class ID07_BreakTimeTest extends TestCase
         Carbon::setTestNow(Carbon::create(2025, 8, 8, 12, 30, 0));
         $this->post(route('break.end'))->assertRedirect(route('attendance.index'));
 
-        // 退勤（一覧は退勤済のみ表示の仕様）
         Carbon::setTestNow(Carbon::create(2025, 8, 8, 18, 0, 0));
         $this->post(route('attendance.end'))->assertRedirect(route('attendance.index'));
 
-        // 一覧に当日行と休憩時間が出ることを確認
         $res = $this->get(route('attendance.list', [
             'year'  => 2025,
             'month' => '08',
         ]))->assertOk();
 
-        // まず当日行があること
         $res->assertSee('08/08');
 
-        // 休憩列の表示は実装依存なので、代表的な表記に柔軟マッチ
-        // 例：'00:30' / '0:30' / '30分' のいずれかが含まれればOK
         $html = $res->getContent();
         $this->assertTrue(
             str_contains($html, '00:30') || str_contains($html, '0:30') || str_contains($html, '30分'),

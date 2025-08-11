@@ -25,7 +25,7 @@ class UserStampCorrectionRequest extends FormRequest
         return [
             'fixed_clock_in'  => ['required', 'date_format:H:i'],
             'fixed_clock_out' => ['required', 'date_format:H:i'],
-            'fixed_breaks'    => ['array'], // 配列ならOK
+            'fixed_breaks'    => ['array'],
             'fixed_breaks.*.break_start' => ['nullable', 'date_format:H:i'],
             'fixed_breaks.*.break_end'   => ['nullable', 'date_format:H:i'],
             'reason' => ['required', 'string'],

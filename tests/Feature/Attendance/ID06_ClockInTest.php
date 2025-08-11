@@ -45,10 +45,8 @@ class ID06_ClockInTest extends TestCase
     {
         $user = $this->loginUser();
 
-        // 1回目
         $this->post(route('attendance.start'))->assertRedirect(route('attendance.index'));
 
-        // 2回目（実装側で弾く想定）
         $this->post(route('attendance.start'))->assertRedirect();
 
         $count = Attendance::where('user_id', $user->id)
@@ -62,24 +60,19 @@ class ID06_ClockInTest extends TestCase
     {
         $this->loginUser();
 
-        // 出勤時刻を固定
         Carbon::setTestNow(Carbon::create(2025, 8, 8, 17, 27, 0));
 
-        // 出勤 → 退勤（※一覧は退勤済のみ表示の仕様）
         $this->post(route('attendance.start'))->assertRedirect(route('attendance.index'));
         $this->post(route('attendance.end'))->assertRedirect(route('attendance.index'));
 
-        // DBの実値をビューと同じ書式に
         $attendance = Attendance::first();
-        $expected   = $attendance->clock_in->format('H:i'); // 17:27
+        $expected   = $attendance->clock_in->format('H:i');
 
-        // 年月を明示して一覧へ
         $res = $this->get(route('attendance.list', [
             'year'  => now()->year,
             'month' => now()->format('m'),
         ]))->assertOk();
 
-        // 日付行と出勤時刻が表示されていること
         $res->assertSee($attendance->work_date->format('m/d'));
         $res->assertSee($expected);
     }

@@ -23,7 +23,6 @@ class ID02_LoginTest extends TestCase
     public function test_メール未入力でエラー(): void
     {
         $res = $this->post('/login', [
-            // 'email' => '',
             'password' => 'password123',
         ]);
 
@@ -35,7 +34,6 @@ class ID02_LoginTest extends TestCase
     {
         $res = $this->post('/login', [
             'email' => 'a@example.com',
-            // 'password' => '',
         ]);
 
         $res->assertSessionHasErrors(['password']);
@@ -54,7 +52,6 @@ class ID02_LoginTest extends TestCase
             'password' => 'password123',
         ]);
 
-        // 失敗時は通常 'email' にエラーが付く
         $res->assertSessionHasErrors(['email']);
         $this->assertGuest();
     }
@@ -71,7 +68,6 @@ class ID02_LoginTest extends TestCase
             'password' => 'password123',
         ]);
 
-        // 実装の遷移先に合わせて必要なら変更
         $res->assertRedirect(route('attendance.index'));
         $this->assertAuthenticatedAs($user);
     }

@@ -48,7 +48,7 @@ class ID10_AttendanceDetailUserTest extends TestCase
         $this->get(route('attendance.fixForm', $attendance->id))
             ->assertOk()
             ->assertSee('勤怠詳細')
-            ->assertSee('斉藤 愛美'); // <td>{{ $attendance->user->name }}</td>
+            ->assertSee('斉藤 愛美');
     }
 
     public function test_日付が選択した日付になっている(): void
@@ -60,9 +60,8 @@ class ID10_AttendanceDetailUserTest extends TestCase
 
         $res = $this->get(route('attendance.fixForm', $attendance->id))->assertOk();
 
-        // 分割表示：Y年 と n月j日
         $res->assertSee($attendance->work_date->format('Y') . '年');
-        $res->assertSee($attendance->work_date->format('n月j日')); // 0埋めなし
+        $res->assertSee($attendance->work_date->format('n月j日'));
     }
 
     public function test_出勤退勤の時間が打刻と一致している(): void
@@ -76,7 +75,6 @@ class ID10_AttendanceDetailUserTest extends TestCase
         $res  = $this->get(route('attendance.fixForm', $attendance->id))->assertOk();
         $html = $res->getContent();
 
-        // <input name="fixed_clock_in" value="09:15"> / <input name="fixed_clock_out" value="18:45">
         $this->assertMatchesRegularExpression('/name="fixed_clock_in"[^>]*value="?\s*09:15\s*"?/u', $html);
         $this->assertMatchesRegularExpression('/name="fixed_clock_out"[^>]*value="?\s*18:45\s*"?/u', $html);
     }
@@ -86,7 +84,6 @@ class ID10_AttendanceDetailUserTest extends TestCase
         $user = $this->loginUser();
         $attendance = $this->makeAttendance($user);
 
-        // 休憩2本（index=0,1 でフォームに並ぶ想定）
         BreakTime::create([
             'attendance_id' => $attendance->id,
             'break_start'   => Carbon::create(2025, 8, 8, 12, 0),
@@ -101,7 +98,6 @@ class ID10_AttendanceDetailUserTest extends TestCase
         $res  = $this->get(route('attendance.fixForm', $attendance->id))->assertOk();
         $html = $res->getContent();
 
-        // input name は fixed_breaks[0][break_start] / fixed_breaks[0][break_end] ... に一致
         $this->assertMatchesRegularExpression('/name="fixed_breaks\[0\]\[break_start\]"[^>]*value="?\s*12:00\s*"?/u', $html);
         $this->assertMatchesRegularExpression('/name="fixed_breaks\[0\]\[break_end\]"[^>]*value="?\s*12:30\s*"?/u', $html);
 

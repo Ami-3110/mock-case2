@@ -41,7 +41,7 @@
             <td>
                 @if ($isAdmin)
                   {{-- 管理者：承認画面へ --}}
-                  <a href="{{ route('admin.correction.approve', $app->id) }}" class="detail-link">詳細</a>
+                  <a href="{{ route('admin.requests.show', $app->id) }}" class="detail-link">詳細</a>
                 @else
                   {{-- 一般ユーザー：確認画面へ --}}
                   <a href="{{ route('attendance.fixConfirm', ['id' => $app->attendance_id, 'request_id' => $app->id]) }}" class="detail-link">詳細</a>
@@ -79,7 +79,7 @@
             <td>
                 @if ($isAdmin)
                   {{-- 管理者：承認画面へ --}}
-                  <a href="{{ route('admin.correction.approve', $app->id) }}" class="detail-link">詳細</a>
+                  <a href="{{ route('admin.requests.show', $app->id) }}" class="detail-link">詳細</a>
                 @else
                   {{-- 一般ユーザー：修正申請フォーム（承認済み）へ --}}
                   <a href="{{ route('attendance.fixConfirm', ['id' => $app->attendance_id, 'request_id' => $app->id]) }}" class="detail-link">詳細</a>

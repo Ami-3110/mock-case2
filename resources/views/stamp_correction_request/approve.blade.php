@@ -61,7 +61,7 @@
         </tr>
     </table>
     @if ($attendanceCorrectRequest->isPending())
-        <form method="POST" action="{{ route('admin.correction.approve', $attendanceCorrectRequest->id) }}">
+        <form method="POST" action="{{ route('admin.requests.update', $attendanceCorrectRequest->id) }}">
             @csrf
             <button type="submit" class="btn btn-primary">承認</button>
         </form>
