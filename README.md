@@ -26,7 +26,6 @@ coachtech勤怠管理システム
         alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
     2. Composerパッケージをインストール
         composer install
-        npm install && npm run dev
     3. .env.example をコピーして .env にリネーム
         cp .env.example .env
     4. .env のデータベース接続設定を修正
@@ -51,14 +50,6 @@ coachtech勤怠管理システム
 
     ※ .env で MAIL_HOST=mailhog が指定されている必要があります。
 
-### フロントエンドビルド（Vite）
-    1. npmパッケージのインストール
-        npm install
-    2. Vite 開発サーバー起動（開発環境）
-        npm run dev
-    3. 本番用ビルド 
-        npm run build
-
 ## URL
     Laravelアプリが正しく起動していると、以下のURLからアクセスできます。
     - トップページ（ログイン画面）: http://localhost/login
@@ -69,8 +60,6 @@ Laravel 10.x
 Laravel Fortify（認証機能）
 PHP 8.2
 MySQL 8.0
-Vite
-Node.js 18+
 MailHog（開発用メール受信）
 PHPUnit（テスト用フレームワーク）
 
@@ -104,29 +93,34 @@ PHPUnit（テスト用フレームワーク）
 （実行コマンド：php artisan migrate:fresh --seed）
 
 ### 作成データ一覧
-管理者アカウント（AdminUserSeeder）
-- 管理画面用のアカウント1件
+**管理者アカウント（AdminUserSeeder）**  
+- 管理画面用のアカウント 1 件
 
-一般ユーザー（UserSeeder）
-- Test User（test@example.com）他6件（UI掲載に準ずる）作成
+**一般ユーザー（UserSeeder）**  
+- Test User（test@example.com） 他6件（UI掲載に準ずる）
 
-勤怠（AttendanceSeeder）
-- 期間：2025/6/1〜2025/10/31（平日のみ）
-- 出勤時間：8:00〜10:30ランダム
-- 休憩時間：30〜90分ランダム
-- 退勤時間：勤務時間＋休憩時間
+**勤怠（AttendanceSeeder）**  
+- 期間：2025/5/1〜2025/8/14（平日のみ）
+- 出勤時間：8:00〜10:30 ランダム
+- 休憩時間合計：30〜90分 ランダム
+- 退勤時間：勤務8時間＋休憩時間
+- 同一ユーザー・同一日付の勤怠がある場合は更新（重複防止）
 
-休憩（BreakSeeder）
-- 勤怠ごとに1〜2件作成
-- 被り防止スロット管理
-- 休憩時間：15〜60分ランダム
+**休憩（BreakSeeder）**  
+- 各勤怠につき 1〜2件作成
+- 勤務開始+1時間〜勤務終了-1時間の範囲で作成
+- 他の休憩時間帯と重ならないようスロット管理
+- 休憩時間：15〜60分 ランダム
+- 再実行時は既存休憩を削除してから再作成（重複防止）
 
-勤怠修正申請（AttendanceCorrectRequestSeeder）
-- 勤怠25件を対象
-- 修正理由ランダム（例：「電車遅延のため」「寝坊しました」）
-- 前半20件：pending、残り5件：approved
-- 出勤時刻：±30分ランダム
-- 修正後休憩時間（JSON）もランダム生成
+**勤怠修正申請（AttendanceCorrectRequestSeeder）**  
+- 対象期間の勤怠（2025/5/1〜2025/8/14）からランダムに25件選択
+- 修正理由：ランダム（例：「電車遅延のため」「寝坊しました」など）
+- ステータス：前半20件を `pending`、残り5件を `approved`
+- 出勤時刻：元の時刻から±30分ランダム
+- 修正後の休憩：1〜2件、15〜60分ランダム（時間帯重複なし）
+- 修正後の退勤：8時間勤務＋修正後休憩時間
+- 再実行時は対象勤怠の既存申請を削除してから作成（重複防止）
 
 ## 機能一覧
 ### 一般ユーザー
