@@ -9,38 +9,53 @@ coachtech勤怠管理システム
 - MailHog を利用したメール認証確認環境
 
 ## インストール方法
-### Dockerビルド
-1. リポジトリをクローン  
+### Dockerビルド・Laravel環境構築
+
+1. DockerDesktopアプリを立ち上げる。
+2. リポジトリをクローン  
    ```bash
    git clone git@github.com:Ami-3110/mock_case2.git
-
-2. DockerDesktopアプリを立ち上げる。
-3. Dockerコンテナをビルド＆起動
+   cd mock-case2
+   ```
+3. Composerパッケージをインストール
+    ```bash
+   composer install
+   ```
+4. .env.example をコピーして .env にリネーム
+    ```bash
+    cp .env.example .env
+    ```
+5. .env のデータベース接続設定を修正
+    ```bash
+    DB_CONNECTION=mysql
+    DB_HOST=mysql
+    DB_PORT=3306
+    DB_DATABASE=sail
+    DB_USERNAME=sail
+    DB_PASSWORD=password
+    ```
+6. Dockerコンテナをビルド＆起動
+    ```bash
     ./vendor/bin/sail up -d --build
+    ```
+    ※ 既存のDockerコンテナやDBデータが残っている状態で再構築する場合は、
+    以下を実行してから手順 6（コンテナ起動）に進んでください。
+    ```bash
+    ./vendor/bin/sail down -v
+    ```
+7. アプリケーションキーの作成
+    ```bash
+    ./vendor/bin/sail artisan key:generate
+    ```
+8. ストレージリンクの作成
+    ```bash
+    ./vendor/bin/sail artisan storage:link
+    ```
 
-### Laravel環境構築
-    1. Sail（PHPコンテナ）に入る
-        ./vendor/bin/sail shell
-
-        # よく使う場合はこのエイリアスを設定すると便利
-        alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
-    2. Composerパッケージをインストール
-        composer install
-    3. .env.example をコピーして .env にリネーム
-        cp .env.example .env
-    4. .env のデータベース接続設定を修正
-        DB_CONNECTION=mysql
-        DB_HOST=mysql
-        DB_PORT=3306
-        DB_DATABASE=laravel_db
-        DB_USERNAME=laravel_user
-        DB_PASSWORD=laravel_pass
-    5. アプリケーションキーの作成
-        ./vendor/bin/sail artisan key:generate
-    6. ストレージリンクの作成
-        ./vendor/bin/sail artisan storage:link
-    7. マイグレーション・シーディングの実行
-        ./vendor/bin/sail artisan migrate --seed
+9. マイグレーション・シーディングの実行
+    ```bash
+    ./vendor/bin/sail artisan migrate --seed
+    ```
 
 #### メール送信（開発環境用）
     開発用に MailHog を使用しています。
