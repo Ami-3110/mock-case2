@@ -14,7 +14,7 @@ coachtech勤怠管理システム
 1. DockerDesktopアプリを立ち上げる。
 2. リポジトリをクローン  
    ```bash
-   git clone git@github.com:Ami-3110/mock_case2.git
+   git clone git@github.com:Ami-3110/mock-case2.git
    cd mock-case2
    ```
 3. Composerパッケージをインストール
